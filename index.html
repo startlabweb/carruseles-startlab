@@ -712,44 +712,94 @@ async function loadConfigFromSupabase() {
     })
     if (!res.ok) return
     const rows = await res.json()
-    rows.forEach(({ id, value }) => {
-      localStorage.setItem('sl_' + id, value)
+    for (const { id, value } of rows) {
+      const decrypted = await decryptVal(value)
+      localStorage.setItem('sl_' + id, decrypted)
       const el = document.getElementById(id)
-      if (el) el.value = value
-    })
+      if (el) el.value = decrypted
+    }
     restoreSelectedUser()
   } catch (e) {
     console.warn('[config] No se pudo cargar config desde Supabase:', e.message)
   }
 }
 
-async function saveConfigToSupabase(keys, section) {
-  const rows = keys.map(k => {
+// ── Crypto: encriptar/desencriptar con AES-GCM antes de guardar en Supabase ──
+// La clave está en el código (obfuscación, no seguridad fuerte) pero evita texto plano en la DB.
+const _CKEY = 'startlab-cfg-2026-secure'
+async function _cryptoKey(usage) {
+  const raw = new TextEncoder().encode(_CKEY.padEnd(32, '0').slice(0, 32))
+  return crypto.subtle.importKey('raw', raw, { name: 'AES-GCM' }, false, [usage])
+}
+async function encryptVal(plaintext) {
+  try {
+    const key = await _cryptoKey('encrypt')
+    const iv = crypto.getRandomValues(new Uint8Array(12))
+    const enc = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(plaintext))
+    const buf = new Uint8Array(12 + enc.byteLength)
+    buf.set(iv); buf.set(new Uint8Array(enc), 12)
+    return btoa(String.fromCharCode(...buf))
+  } catch { return plaintext }
+}
+async function decryptVal(ciphertext) {
+  try {
+    const buf = Uint8Array.from(atob(ciphertext), c => c.charCodeAt(0))
+    const key = await _cryptoKey('decrypt')
+    const dec = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(0, 12) }, key, buf.slice(12))
+    return new TextDecoder().decode(dec)
+  } catch { return ciphertext } // si no se puede desencriptar, devolver tal cual (compatibilidad)
+}
+
+async function saveConfigToSupabase(keys) {
+  const sbHeaders = {
+    'apikey': SUPABASE_ANON,
+    'Authorization': `Bearer ${SUPABASE_ANON}`,
+    'Content-Type': 'application/json',
+  }
+
+  // Separar keys con valor (upsert) y sin valor (delete)
+  const toDelete = []
+  const toUpsert = []
+  for (const k of keys) {
     const el = document.getElementById(k)
     const val = el ? el.value.trim() : localStorage.getItem('sl_' + k) || ''
-    return { id: k, value: val, updated_at: new Date().toISOString() }
-  }).filter(r => r.value !== '')
-  if (rows.length === 0) return
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/app_config_carruseles`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_ANON,
-        'Authorization': `Bearer ${SUPABASE_ANON}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates',
-      },
-      body: JSON.stringify(rows),
-    })
-    if (!res.ok) {
-      const err = await res.text()
-      console.error('[config] Supabase error:', err)
-      toast(`Error al sincronizar con Supabase: ${res.status}`, 'error')
+    if (val === '') {
+      toDelete.push(k)
     } else {
-      console.log('[config] Guardado en Supabase:', rows.map(r => r.id).join(', '))
+      const encrypted = await encryptVal(val)
+      toUpsert.push({ id: k, value: encrypted, updated_at: new Date().toISOString() })
+    }
+  }
+
+  try {
+    // Upsert valores no vacíos
+    if (toUpsert.length > 0) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/app_config_carruseles`, {
+        method: 'POST',
+        headers: { ...sbHeaders, 'Prefer': 'resolution=merge-duplicates' },
+        body: JSON.stringify(toUpsert),
+      })
+      if (!res.ok) {
+        const err = await res.text()
+        console.error('[config] Supabase upsert error:', err)
+        toast(`Error Supabase ${res.status}: ${err.slice(0, 100)}`, 'error')
+        return
+      }
+    }
+
+    // Eliminar keys vacíos (el usuario borró el campo)
+    for (const k of toDelete) {
+      await fetch(`${SUPABASE_URL}/rest/v1/app_config_carruseles?id=eq.${encodeURIComponent(k)}`, {
+        method: 'DELETE',
+        headers: sbHeaders,
+      })
+    }
+
+    if (toUpsert.length > 0 || toDelete.length > 0) {
+      console.log('[config] Supabase sync OK — upsert:', toUpsert.map(r => r.id), '| delete:', toDelete)
     }
   } catch (e) {
-    console.warn('[config] No se pudo guardar en Supabase:', e.message)
+    console.warn('[config] Supabase error:', e.message)
     toast('Sin conexión a Supabase. Guardado solo localmente.', 'error')
   }
 }
