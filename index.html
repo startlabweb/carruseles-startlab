@@ -541,7 +541,7 @@
   <!-- OpenRouter -->
   <div class="card">
     <div class="config-section-title">OpenRouter</div>
-    <p class="card-subtitle">Adaptación con Claude Sonnet · <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--gold)">Obtener API key</a></p>
+    <p class="card-subtitle">Claude Sonnet — adaptación de carruseles · <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--gold)">Obtener API key</a></p>
     <div class="field">
       <label>API Key</label>
       <input type="password" id="openrouterKey" placeholder="sk-or-...">
@@ -549,6 +549,40 @@
     <div class="save-row">
       <button class="btn btn-save btn-sm" onclick="saveSection('openrouter')">Guardar</button>
       <span class="save-confirm" id="save-confirm-openrouter">✓ Guardado</span>
+    </div>
+  </div>
+
+  <!-- OpenAI -->
+  <div class="card">
+    <div class="config-section-title">OpenAI <span style="font-size:0.8rem;font-weight:400;color:var(--text-3)">(análisis visual de imágenes)</span></div>
+    <p class="card-subtitle">GPT-4o mini analiza la primera imagen de cada carrusel antes de adaptarlo · <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--gold)">Obtener API key</a></p>
+    <div class="field">
+      <label>API Key <span class="opt">(opcional — si no se configura, solo se analiza el caption)</span></label>
+      <input type="password" id="openaiKey" placeholder="sk-...">
+    </div>
+    <div class="save-row">
+      <button class="btn btn-save btn-sm" onclick="saveSection('openai')">Guardar</button>
+      <span class="save-confirm" id="save-confirm-openai">✓ Guardado</span>
+    </div>
+  </div>
+
+  <!-- Supabase -->
+  <div class="card">
+    <div class="config-section-title">Supabase <span style="font-size:0.8rem;font-weight:400;color:var(--text-3)">(historial de adaptaciones)</span></div>
+    <p class="card-subtitle">Guarda automáticamente cada adaptación en tu base de datos · <span style="color:var(--text-3)">Ejecuta el SQL de <code>supabase_setup.sql</code> una vez en el SQL Editor de Supabase</span></p>
+    <div class="fields-row">
+      <div class="field">
+        <label>Project URL</label>
+        <input type="text" id="supabaseUrl" placeholder="https://xxxx.supabase.co">
+      </div>
+      <div class="field">
+        <label>Anon Key</label>
+        <input type="password" id="supabaseKey" placeholder="eyJ...">
+      </div>
+    </div>
+    <div class="save-row">
+      <button class="btn btn-save btn-sm" onclick="saveSection('supabase')">Guardar</button>
+      <span class="save-confirm" id="save-confirm-supabase">✓ Guardado</span>
     </div>
   </div>
 
@@ -561,18 +595,18 @@
       <div class="field">
         <label>Token de Integración</label>
         <input type="password" id="notionToken" placeholder="secret_...">
-        <div class="hint">notion.so → Settings → Connections → Develop or manage integrations → tu integración → Copy secret</div>
+        <div class="hint">notion.so → Settings → Connections → Integrations → tu integración → Copy secret</div>
       </div>
       <div class="field">
         <label>Database ID</label>
         <input type="text" id="notionDbId" placeholder="32f4f8fa986c80ab8c1df90f8977bbe0">
-        <div class="hint">En la URL de tu base de datos, la parte entre el último / y el ?</div>
+        <div class="hint">En la URL de tu DB: la parte entre el último / y el ?v=</div>
       </div>
     </div>
 
     <hr class="divider">
-    <div class="section-label">Nombres de propiedades en Notion</div>
-    <p class="hint" style="margin-bottom:12px">Deben coincidir exactamente con los nombres de las columnas en tu base de datos (son sensibles a mayúsculas).</p>
+    <div class="section-label">Propiedades de la base de datos</div>
+    <p class="hint" style="margin-bottom:12px">Case-sensitive — deben coincidir exactamente con los nombres de las columnas.</p>
 
     <div class="fields-row">
       <div class="field">
@@ -582,10 +616,9 @@
       <div class="field">
         <label>Propiedad Responsable <span class="opt">(People)</span></label>
         <input type="text" id="notionPropResponsable" placeholder="Responsable">
-        <div class="hint">Nombre exacto de la columna tipo "People" en tu base de datos</div>
       </div>
       <div class="field">
-        <label>Propiedad Fase <span class="opt">(Select, opcional)</span></label>
+        <label>Propiedad Fase <span class="opt">(Select)</span></label>
         <input type="text" id="notionPropFase" placeholder="Fase del Proceso">
       </div>
       <div class="field">
@@ -603,6 +636,30 @@
     <div class="save-row">
       <button class="btn btn-save btn-sm" onclick="saveSection('notion')">Guardar y cargar usuarios</button>
       <span class="save-confirm" id="save-confirm-notion">✓ Guardado</span>
+    </div>
+  </div>
+
+  <!-- Prompts -->
+  <div class="card">
+    <div class="config-section-title">Prompts</div>
+    <p class="card-subtitle">Personaliza las instrucciones que recibe la IA. El formato de salida (JSON) siempre es fijo y no se puede editar aquí.</p>
+
+    <div class="field">
+      <label>Contexto de adaptación</label>
+      <textarea id="promptContext" style="min-height:300px;font-size:0.82rem;line-height:1.55" placeholder="Cargando contexto por defecto..."></textarea>
+      <div class="hint">Este es el contexto que recibe Claude antes de adaptar cada carrusel. Incluye el perfil de StartLab, ICP, dolores, terminología y estructura retórica.</div>
+    </div>
+
+    <div class="field" style="margin-top:14px">
+      <label>Prompt de análisis visual <span class="opt">(para GPT-4o mini)</span></label>
+      <textarea id="visionPrompt" style="min-height:80px;font-size:0.82rem" placeholder="Cargando..."></textarea>
+      <div class="hint">Instrucción que recibe GPT-4o mini al analizar la primera imagen del carrusel. Resultado se incluye en el prompt de adaptación.</div>
+    </div>
+
+    <div class="save-row">
+      <button class="btn btn-save btn-sm" onclick="saveSection('prompts')">Guardar prompts</button>
+      <button class="btn btn-secondary btn-sm" onclick="resetPrompts()">Restaurar por defecto</button>
+      <span class="save-confirm" id="save-confirm-prompts">✓ Guardado</span>
     </div>
   </div>
 
@@ -629,22 +686,34 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const ALL_KEYS = [
-  'apifyToken', 'openrouterKey',
+  'apifyToken', 'openrouterKey', 'openaiKey',
+  'supabaseUrl', 'supabaseKey',
   'notionToken', 'notionDbId',
   'notionPropTitle', 'notionPropResponsable', 'notionPropFase', 'notionValorFase',
+  'promptContext', 'visionPrompt',
 ]
 
 const SECTION_KEYS = {
   apify: ['apifyToken'],
   openrouter: ['openrouterKey'],
+  openai: ['openaiKey'],
+  supabase: ['supabaseUrl', 'supabaseKey'],
   notion: ['notionToken', 'notionDbId', 'notionPropTitle', 'notionPropResponsable', 'notionPropFase', 'notionValorFase'],
+  prompts: ['promptContext', 'visionPrompt'],
 }
 
 function loadConfig() {
   ALL_KEYS.forEach(k => {
     const el = document.getElementById(k)
+    if (!el) return
     const val = localStorage.getItem('sl_' + k)
-    if (el && val) el.value = val
+    if (val !== null) {
+      el.value = val
+    } else if (k === 'promptContext') {
+      el.value = DEFAULT_PROMPT_CONTEXT
+    } else if (k === 'visionPrompt') {
+      el.value = DEFAULT_VISION_PROMPT
+    }
   })
 }
 
@@ -686,11 +755,8 @@ async function loadNotionUsers() {
   list.innerHTML = '<p class="users-msg">Cargando usuarios del workspace…</p>'
 
   try {
-    const res = await fetch('https://api.notion.com/v1/users', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Notion-Version': '2022-06-28',
-      },
+    const res = await fetch('/api/notion?action=users', {
+      headers: { 'x-notion-token': token },
     })
     if (!res.ok) {
       const err = await res.text()
@@ -979,51 +1045,108 @@ document.getElementById('searchUrlsBtn').addEventListener('click', runUrlSearch)
 // ADAPTATION
 // ─────────────────────────────────────────────────────────────────────────────
 
-const STARTLAB_CONTEXT = `## EMPRESA: StartLab — Plataforma de escalado para negocios digitales B2B
+// ─── Default prompts (editables en Configuración → Prompts) ──────────────────
 
-StartLab: empresa de educación y consultoría B2B con 10+ años, 800+ clientes, equipo de 16. Ayuda a coaches, consultores, agencias e infoproductores a pasar de facturación inestable a un sistema predecible.
+const DEFAULT_PROMPT_CONTEXT = `Eres el estratega de contenido de StartLab. Tu misión es adaptar carruseles de Instagram al ICP y la voz de StartLab.
 
-ICP: Facturan 5k-30k USD/mes con inestabilidad (ME6) o 20k-300k con operación frágil (ME7).
+## EMPRESA: StartLab
+Plataforma B2B de escalado para negocios digitales. 10+ años de experiencia, más de 800 clientes, equipo de 16 personas. Ayuda a coaches, consultores, agencias e infoproductores a pasar de facturación inestable a un sistema predecible y elegante.
 
-Dolores: "Un mes espectacular, al siguiente no saben qué va a pasar." Esclavos del contenido sin retorno predecible. Picos de lanzamientos seguidos de meses vacíos. Clientes de bajo ticket que exigen demasiado. Son el "pulpo": el negocio no funciona sin su presencia.
+## CLIENTE IDEAL (ICP)
+Dueños de negocios digitales de servicios en educación online — coaches, consultores, agencias e infoproductores — que ya facturan entre 5k y 30k USD/mes pero con inestabilidad. Edad 30-50 años. Altamente educados, autodidactas. Ya tienen validación de mercado y casos de éxito, pero no han construido un sistema predecible.
 
-Desean: 5-15 clientes premium +2k USD | 30+ llamadas calificadas/mes | Tasa cierre 20%+ | 90 días predecibles | Márgenes 30%+
+## DOLORES CLAVE
+- "Un mes espectacular, al siguiente no saben qué va a pasar"
+- Esclavos del contenido diario sin retorno predecible
+- Dependencia de lanzamientos agotadores seguidos de meses vacíos
+- Clientes de bajo ticket que exigen demasiado tiempo y soporte
+- Son el "pulpo": el negocio no funciona sin su presencia diaria
+- Miedo a contratar equipo sin ingresos predecibles
+- Sensación de estancamiento a pesar del talento
+- Márgenes bajos por estructuras ineficientes
 
-Terminología OBLIGATORIA: sistema predecible, captación automatizada, clientes premium, promesa de alto valor, llamadas calificadas, setter, closer, tasa de cierre, ingresos recurrentes, 90 días, escalar sin lanzamientos, facturación predecible, libertad operativa
+## DESEOS Y RESULTADOS ESPERADOS
+- Escalar de 10k-30k a 50k-80k USD/mes en 6-12 meses
+- Trabajar con 5-15 clientes premium pagando +2k USD cada uno
+- Sistema automático que genere mínimo 30 llamadas calificadas al mes
+- Tasa de cierre mínima del 20%
+- Márgenes de utilidad superiores al 30%
+- 90 días consecutivos de facturación predecible
+- Reducir lanzamientos a máximo uno estratégico al año
+- Libertad operativa real: el negocio funciona sin su presencia constante
 
-PROHIBIDO: emprender desde cero, más seguidores, más contenido, crecer en redes, motivación genérica, métricas inventadas, principiantes sin negocio validado
+## TERMINOLOGÍA OBLIGATORIA (usar siempre)
+sistema predecible, captación automatizada, clientes premium, promesa de alto valor, llamadas calificadas, setter, closer, tasa de cierre, ingresos recurrentes, 90 días, escalar sin lanzamientos, facturación predecible, libertad operativa, alto valor, proceso comercial, embudo de ventas, cierre profesional
 
-Estructura retórica OBLIGATORIA: "Lo que la mayoría hace → Por qué es un problema → Lo que genera → Lo que debes hacer → Lo que obtienes"
+## TERMINOLOGÍA PROHIBIDA (nunca usar)
+emprender desde cero, más seguidores, más contenido, crecer en redes sociales, motivación genérica, métricas inventadas, principiantes sin negocio validado, hacerse rico rápido, fórmulas mágicas
 
-CTA: "Si ya facturas entre X y X al mes y quieres escalar a 50k-80k con un sistema predecible, el enlace está abajo. Sin compromiso. Solo estructura."`
+## ESTRUCTURA RETÓRICA OBLIGATORIA (aplicar en cada pieza)
+1. Lo que la mayoría hace (el error común)
+2. Por qué eso es un problema
+3. Lo que eso genera (consecuencia negativa)
+4. Lo que debes hacer en cambio (solución StartLab)
+5. Lo que obtienes al hacerlo (resultado concreto)
 
-function buildAdaptPrompt(carousel) {
-  return `Eres el estratega de contenido de StartLab. Adapta este carrusel de Instagram (solo imágenes, no video — solo tienes el caption) al ICP de StartLab.
+## CTA ESTÁNDAR
+"Si ya facturas entre [X] y [X] al mes y quieres escalar a 50k-80k con un sistema predecible, el enlace está abajo. Sin compromiso. Solo estructura."
 
-${STARTLAB_CONTEXT}
+## DATOS REALES PARA USAR
+- 15k-25k/mes inestable → sistema → 5-15 clientes premium +2k USD con ingresos recurrentes
+- Tasa de cierre 20%+ | Margen 30%+ | 90 días predecibles consecutivos
+- Agencias que migraron al modelo StartLab: escalaron a 200k/mes
+- Consultores que pasaron de múltiples servicios de 500 USD a una oferta de 3k USD: duplicaron utilidad
 
----
-CARRUSEL ORIGINAL
-Cuenta: @${carousel.ownerUsername || '?'} · Likes: ${(carousel.likesCount || 0).toLocaleString()}
-Caption: ${carousel.caption || '(sin caption)'}
----
+## INSTRUCCIONES DE ADAPTACIÓN
+- Adapta el carrusel original al contexto de StartLab y su ICP
+- Genera entre 7 y 10 slides: slide 1 = portada con gancho al dolor más profundo, slides intermedios = estructura retórica StartLab, último slide = CTA
+- Usa la terminología obligatoria de forma natural, no forzada
+- El hook de portada debe ser específico, concreto y atacar un dolor real del ICP
+- Los slides intermedios deben construir lógica persuasiva siguiendo la estructura retórica
+- El CTA final debe usar el formato estándar de StartLab con rangos de facturación concretos
+- El guion adaptado es para video (reels/shorts): incluye ritmo, pausas dramáticas, frases cortas`
 
-Genera 7-10 slides adaptados. Slide 1 = portada (gancho al dolor). Intermedios = estructura retórica StartLab. Último = CTA.
+const DEFAULT_VISION_PROMPT = `Analiza la primera imagen de este carrusel de Instagram de negocios digitales. Describe en 3-5 líneas concisas:
+1. Tipo de diseño: ¿template profesional, diseño casero, texto sobre fondo, mockup?
+2. Texto visible: ¿qué dice exactamente si hay texto legible?
+3. Tono visual: colores, estilo, nivel de producción
+Solo descripción objetiva. No interpretes ni hagas suposiciones sobre el negocio.`
 
-JSON estricto sin markdown:
+// ── HARDCODED (no editable por el usuario): esquema de salida JSON ────────────
+const OUTPUT_SCHEMA = `
+FORMATO DE SALIDA — JSON estricto, sin markdown, sin texto fuera del JSON:
 {
-  "hook_adaptado": "string (máx 12 palabras)",
-  "hook_variantes": ["variante inestabilidad", "variante lanzamientos", "variante contenido"],
-  "guion_adaptado": "guion completo con saltos de línea para ritmo, CTA al final",
+  "hook_adaptado": "string máx 12 palabras que conecte con el dolor del ICP",
+  "hook_variantes": [
+    "variante enfocada en inestabilidad de facturación",
+    "variante enfocada en dependencia de lanzamientos",
+    "variante enfocada en esclavitud del contenido"
+  ],
+  "guion_adaptado": "guion completo con saltos de línea y pausas dramáticas para video, CTA al final",
   "carrusel": {
     "slides": [
-      {"numero": 1, "tipo": "portada", "titulo": "Gancho máx 8 palabras", "subtitulo": "Completa la promesa"},
-      {"numero": 2, "tipo": "contenido", "titulo": "Título", "cuerpo": "Texto. Bullets con •"},
-      {"numero": 7, "tipo": "cta", "titulo": "CTA StartLab", "cuerpo": "Si ya facturas..."}
+      {"numero": 1, "tipo": "portada", "titulo": "Gancho máx 8 palabras", "subtitulo": "Completa la promesa del gancho"},
+      {"numero": 2, "tipo": "contenido", "titulo": "Título de la sección", "cuerpo": "Texto explicativo. Usa • para bullets si aplica."},
+      {"numero": 7, "tipo": "cta", "titulo": "CTA final StartLab", "cuerpo": "Si ya facturas entre X y X al mes..."}
     ],
-    "cta_ultimo_slide": "string"
+    "cta_ultimo_slide": "Texto completo del CTA con rangos de facturación específicos"
   }
 }`
+
+function buildAdaptPrompt(carousel, visionAnalysis) {
+  const context = (localStorage.getItem('sl_promptContext') || DEFAULT_PROMPT_CONTEXT).trim()
+  const visionBlock = visionAnalysis
+    ? `\n\nANÁLISIS VISUAL (primera imagen del carrusel):\n${visionAnalysis}`
+    : ''
+
+  return `${context}
+
+---
+CARRUSEL ORIGINAL A ADAPTAR
+Cuenta: @${carousel.ownerUsername || '?'} · Likes: ${(carousel.likesCount || 0).toLocaleString()} · Fecha: ${carousel.timestamp ? new Date(carousel.timestamp).toLocaleDateString('es') : 'N/A'}
+Caption: ${carousel.caption || '(sin caption)'}${visionBlock}
+---
+${OUTPUT_SCHEMA}`
 }
 
 function extractJson(text) {
@@ -1066,10 +1189,45 @@ function normalizeSlides(slides) {
   })
 }
 
+async function analyzeCarouselImage(imageUrl, openaiKey) {
+  const visionPrompt = (localStorage.getItem('sl_visionPrompt') || DEFAULT_VISION_PROMPT).trim()
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${openaiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      max_tokens: 400,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'text', text: visionPrompt },
+          { type: 'image_url', image_url: { url: imageUrl, detail: 'low' } },
+        ],
+      }],
+    }),
+    signal: AbortSignal.timeout(30_000),
+  })
+  if (!res.ok) return null
+  const data = await res.json()
+  return data.choices?.[0]?.message?.content || null
+}
+
 async function adaptCarousel(carousel) {
   const key = getConfig('openrouterKey')
   if (!key) throw new Error('Falta la OpenRouter API Key. Configúrala en Configuración.')
   if (!carousel.caption) throw new Error('Este carrusel no tiene caption — no hay contenido para adaptar.')
+
+  // Análisis visual opcional (GPT-4o mini)
+  let visionAnalysis = null
+  const openaiKey = getConfig('openaiKey')
+  if (carousel.displayUrl && openaiKey) {
+    try {
+      visionAnalysis = await analyzeCarouselImage(carousel.displayUrl, openaiKey)
+      console.log('[Vision] Análisis completado:', visionAnalysis?.slice(0, 100))
+    } catch (e) {
+      console.warn('[Vision] Error al analizar imagen:', e.message)
+    }
+  }
 
   const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -1079,7 +1237,7 @@ async function adaptCarousel(carousel) {
       max_tokens: 8000,
       response_format: { type: 'json_object' },
       provider: { order: ['Anthropic'] },
-      messages: [{ role: 'user', content: buildAdaptPrompt(carousel) }],
+      messages: [{ role: 'user', content: buildAdaptPrompt(carousel, visionAnalysis) }],
     }),
     signal: AbortSignal.timeout(120_000),
   })
@@ -1101,6 +1259,36 @@ async function adaptCarousel(carousel) {
       slides: normalizeSlides(parsed.carrusel?.slides),
       cta_ultimo_slide: toText(parsed.carrusel?.cta_ultimo_slide),
     },
+    _visionUsed: !!visionAnalysis,
+  }
+}
+
+async function saveToSupabase(carousel, adaptation, notionUrl) {
+  const supabaseUrl = getConfig('supabaseUrl')
+  const supabaseKey = getConfig('supabaseKey')
+  if (!supabaseUrl || !supabaseKey) return
+  try {
+    await fetch(`${supabaseUrl}/rest/v1/carruseles_adaptados`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseKey}`,
+        'apikey': supabaseKey,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({
+        url: carousel.url || null,
+        owner_username: carousel.ownerUsername || null,
+        caption: carousel.caption || null,
+        keyword: carousel.keyword || null,
+        hook_adaptado: adaptation.hook_adaptado || null,
+        slides: adaptation.carrusel?.slides || [],
+        notion_url: notionUrl || null,
+      }),
+    })
+    console.log('[Supabase] Carrusel guardado')
+  } catch (e) {
+    console.warn('[Supabase] Error al guardar:', e.message)
   }
 }
 
@@ -1205,18 +1393,21 @@ async function saveToNotion(btn, adaptIdx) {
   btn.textContent = 'Guardando…'
 
   try {
-    const url = await createNotionPage(carousel, adaptation, token, dbId)
+    const notionUrl = await createNotionPage(carousel, adaptation, token, dbId)
     btn.textContent = '✓ Guardado'
     btn.style.background = 'var(--success)'
     btn.style.color = '#111'
 
     const link = document.createElement('a')
-    link.href = url
+    link.href = notionUrl
     link.target = '_blank'
     link.className = 'btn btn-secondary btn-sm'
     link.textContent = 'Abrir en Notion ↗'
     btn.parentElement.appendChild(link)
     toast('✓ Página creada en Notion', 'success')
+
+    // Guardar también en Supabase (silencioso si no está configurado)
+    saveToSupabase(carousel, adaptation, notionUrl)
   } catch (err) {
     btn.disabled = false
     btn.textContent = 'Guardar en Notion'
@@ -1249,12 +1440,12 @@ async function createNotionPage(carousel, adaptation, token, databaseId) {
 
   const blocks = buildNotionBlocks(carousel, adaptation).slice(0, 100)
 
-  const res = await fetch('https://api.notion.com/v1/pages', {
+  // Llamar a través del proxy Vercel (resuelve CORS)
+  const res = await fetch('/api/notion?action=createPage', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
-      'Notion-Version': '2022-06-28',
+      'x-notion-token': token,
     },
     body: JSON.stringify({ parent: { database_id: databaseId }, properties, children: blocks }),
   })
@@ -1265,6 +1456,7 @@ async function createNotionPage(carousel, adaptation, token, databaseId) {
   }
 
   const page = await res.json()
+  if (page.object === 'error') throw new Error(`Notion: ${page.message}`)
   return `https://www.notion.so/${page.id.replace(/-/g, '')}`
 }
 
@@ -1315,6 +1507,21 @@ function buildNotionBlocks(carousel, adaptation) {
   }
 
   return blocks.filter(Boolean)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROMPTS HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+function resetPrompts() {
+  if (!confirm('¿Restaurar los prompts al texto por defecto? Se perderán los cambios manuales.')) return
+  localStorage.removeItem('sl_promptContext')
+  localStorage.removeItem('sl_visionPrompt')
+  const pc = document.getElementById('promptContext')
+  const vp = document.getElementById('visionPrompt')
+  if (pc) pc.value = DEFAULT_PROMPT_CONTEXT
+  if (vp) vp.value = DEFAULT_VISION_PROMPT
+  toast('Prompts restaurados al valor por defecto', 'success')
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
