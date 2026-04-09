@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carruseles StartLab</title>
+  <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #121212;
+      --surface: #1e1e1e;
+      --surface2: #2a2a2a;
+      --border: #333;
+      --gold: #EAB660;
+      --gold-dark: #C09D46;
+      --text: #f0f0f0;
+      --text-muted: #888;
+      --danger: #e05c5c;
+      --success: #5ce07a;
+      --radius: 10px;
+    }
+
+    body {
+      font-family: 'Red Hat Display', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0 0 60px;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: -0.3px;
+    }
+
+    .main { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .btn-primary { background: var(--gold); color: #121212; }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-sm { padding: 6px 12px; font-size: 0.82rem; }
+    .btn-danger { background: var(--danger); color: #fff; }
+
+    /* ── Config Panel ── */
+    #configPanel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    #configHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      cursor: pointer;
+      user-select: none;
+    }
+    #configHeader h2 { font-size: 0.95rem; font-weight: 600; }
+    #configHeader .chevron { transition: transform 0.2s; font-style: normal; }
+    #configHeader.open .chevron { transform: rotate(180deg); }
+    #configBody { padding: 0 18px 18px; display: none; }
+    #configBody.open { display: block; }
+
+    .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    @media (max-width: 600px) { .config-grid { grid-template-columns: 1fr; } }
+
+    .field label { display: block; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
+    .field input, .field textarea, .field select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text);
+      padding: 9px 12px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .field input:focus, .field textarea:focus { border-color: var(--gold); }
+    .field textarea { resize: vertical; min-height: 80px; }
+
+    /* ── Search Section ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+    .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 14px; }
+
+    .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+    .tab {
+      padding: 7px 16px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab.active { background: var(--gold); color: #121212; border-color: var(--gold); font-weight: 700; }
+
+    .objetivo-row { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+    .objetivo-row label { font-size: 0.88rem; color: var(--text-muted); white-space: nowrap; }
+    .objetivo-row input { width: 80px; text-align: center; }
+
+    /* ── Progress ── */
+    #progress {
+      background: var(--surface);
+      border: 1px solid var(--gold);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    #progressText { color: var(--gold); font-weight: 600; font-size: 0.9rem; }
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid var(--gold);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Results ── */
+    #resultsHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    #resultsHeader h2 { font-size: 1rem; font-weight: 700; }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .carousel-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.1s;
+      position: relative;
+    }
+    .carousel-card:hover { border-color: #555; transform: translateY(-1px); }
+    .carousel-card.selected { border-color: var(--gold); }
+    .carousel-card.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 8px; right: 8px;
+      width: 22px; height: 22px;
+      background: var(--gold);
+      color: #121212;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.75rem;
+      line-height: 22px;
+      text-align: center;
+    }
+
+    .card-thumb {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      display: block;
+      background: var(--surface2);
+    }
+    .card-thumb-placeholder {
+      width: 100%;
+      aspect-ratio: 1;
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 2rem;
+    }
+    .card-body { padding: 12px; }
+    .card-account { font-weight: 700; font-size: 0.88rem; color: var(--gold); margin-bottom: 4px; }
+    .card-meta { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px; }
+    .card-caption {
+      font-size: 0.82rem;
+      color: #ccc;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .card-link {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 0.78rem;
+      color: var(--gold);
+      text-decoration: none;
+    }
+    .card-link:hover { text-decoration: underline; }
+
+    /* ── Adaptation ── */
+    .adaptation-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .adaptation-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .adaptation-header h3 { font-size: 0.95rem; font-weight: 700; }
+    .adaptation-body { padding: 18px; }
+
+    .section-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 8px;
+      margin-top: 18px;
+    }
+    .section-label:first-child { margin-top: 0; }
+
+    .hook-box {
+      background: var(--surface2);
+      border-left: 3px solid var(--gold);
+      padding: 12px 14px;
+      border-radius: 0 7px 7px 0;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    .hook-variants { display: flex; flex-direction: column; gap: 6px; }
+    .hook-variant {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      color: #ccc;
+    }
+
+    .slides-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .slide-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.82rem;
+    }
+    .slide-num {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .slide-titulo { font-weight: 700; margin-bottom: 4px; line-height: 1.3; }
+    .slide-subtitulo { color: var(--text-muted); margin-bottom: 6px; font-size: 0.78rem; }
+    .slide-cuerpo { color: #bbb; line-height: 1.4; white-space: pre-line; }
+
+    .text-block {
+      background: var(--surface2);
+      border-radius: 7px;
+      padding: 12px 14px;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #ccc;
+      white-space: pre-line;
+    }
+
+    /* ── Toast / Error ── */
+    #toast {
+      position: fixed;
+      bottom: 20px; right: 20px;
+      background: #333;
+      color: var(--text);
+      padding: 12px 18px;
+      border-radius: 9px;
+      font-size: 0.88rem;
+      max-width: 360px;
+      border: 1px solid var(--border);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 1000;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.error { border-color: var(--danger); }
+    #toast.success { border-color: var(--success); }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📸 Carruseles StartLab</h1>
+  <button class="btn btn-secondary btn-sm" id="toggleConfig">⚙ Config</button>
+</header>
+
+<div class="main">
+
+  <!-- CONFIG -->
+  <div id="configPanel">
+    <div id="configHeader">
+      <h2>Configuración de API Keys</h2>
+      <em class="chevron">▼</em>
+    </div>
+    <div id="configBody">
+      <div class="config-grid">
+        <div class="field">
+          <label>Apify Token</label>
+          <input type="password" id="apifyToken" placeholder="apify_api_...">
+        </div>
+        <div class="field">
+          <label>OpenRouter API Key</label>
+          <input type="password" id="openrouterKey" placeholder="sk-or-...">
+        </div>
+        <div class="field">
+          <label>Notion Integration Token</label>
+          <input type="password" id="notionToken" placeholder="secret_...">
+        </div>
+        <div class="field">
+          <label>Notion Database ID</label>
+          <input type="text" id="notionDbId" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" id="saveConfig">Guardar configuración</button>
+      <span id="configStatus" style="margin-left:10px; font-size:0.82rem; color:var(--text-muted)"></span>
+    </div>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="card">
+    <div class="card-title">Buscar carruseles</div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="keywords">Por keywords</button>
+      <button class="tab" data-tab="urls">Por URLs directas</button>
+    </div>
+
+    <div id="tab-keywords">
+      <div class="field">
+        <label>Keywords (una por línea)</label>
+        <textarea id="keywords" placeholder="sistema predecible ventas&#10;captación automatizada clientes&#10;escalar consultoría&#10;clientes premium alto valor"></textarea>
+      </div>
+      <div class="objetivo-row">
+        <label for="objetivo">Objetivo de carruseles:</label>
+        <input class="field" type="number" id="objetivo" value="5" min="1" max="50">
+        <button class="btn btn-primary" id="searchKeywordsBtn">Buscar</button>
+      </div>
+    </div>
+
+    <div id="tab-urls" style="display:none">
+      <div class="field">
+        <label>URLs de Instagram (una por línea — posts o perfiles)</label>
+        <textarea id="urls" placeholder="https://www.instagram.com/p/ABC123/&#10;https://www.instagram.com/startlabweb/"></textarea>
+      </div>
+      <div style="margin-top:12px">
+        <button class="btn btn-primary" id="searchUrlsBtn">Buscar por URLs</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div id="progress">
+    <span class="spinner"></span>
+    <span id="progressText">Buscando...</span>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="resultsSection" style="display:none">
+    <div id="resultsHeader">
+      <h2>Carruseles encontrados (<span id="resultsCount">0</span>)</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span id="selectedCount" style="font-size:0.85rem;color:var(--text-muted)"></span>
+        <button class="btn btn-primary" id="adaptBtn">✦ Adaptar seleccionados</button>
+      </div>
+    </div>
+    <div id="resultsGrid" class="results-grid"></div>
+  </div>
+
+  <!-- ADAPTATIONS -->
+  <div id="adaptationsSection" style="display:none">
+    <h2 style="margin-bottom:16px; font-size:1rem; font-weight:700">Adaptaciones</h2>
+    <div id="adaptationsList"></div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────────────────────────────────────
+
+const KEYS = ['apifyToken', 'openrouterKey', 'notionToken', 'notionDbId']
+
+function loadConfig() {
+  KEYS.forEach(k => {
+    const el = document.getElementById(k)
+    const val = localStorage.getItem('sl_' + k)
+    if (el && val) el.value = val
+  })
+}
+
+function saveConfig() {
+  KEYS.forEach(k => {
+    const el = document.getElementById(k)
+    if (el) localStorage.setItem('sl_' + k, el.value.trim())
+  })
+  document.getElementById('configStatus').textContent = '✓ Guardado'
+  setTimeout(() => document.getElementById('configStatus').textContent = '', 2000)
+}
+
+function getConfig(key) {
+  return (document.getElementById(key)?.value?.trim()) || localStorage.getItem('sl_' + key) || ''
+}
+
+// Config panel toggle
+document.getElementById('configHeader').addEventListener('click', () => {
+  const body = document.getElementById('configBody')
+  const header = document.getElementById('configHeader')
+  body.classList.toggle('open')
+  header.classList.toggle('open')
+})
+
+document.getElementById('saveConfig').addEventListener('click', saveConfig)
+document.getElementById('toggleConfig').addEventListener('click', () => {
+  document.getElementById('configHeader').click()
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TABS
+// ─────────────────────────────────────────────────────────────────────────────
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+    tab.classList.add('active')
+    const which = tab.dataset.tab
+    document.getElementById('tab-keywords').style.display = which === 'keywords' ? '' : 'none'
+    document.getElementById('tab-urls').style.display = which === 'urls' ? '' : 'none'
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────────────────────────────────────────
+
+let toastTimer
+function toast(msg, type = '') {
+  const el = document.getElementById('toast')
+  el.textContent = msg
+  el.className = 'show ' + type
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => el.className = '', 4000)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROGRESS
+// ─────────────────────────────────────────────────────────────────────────────
+
+function setProgress(text) {
+  const el = document.getElementById('progress')
+  if (text) {
+    el.style.display = ''
+    document.getElementById('progressText').textContent = text
+  } else {
+    el.style.display = 'none'
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// APIFY
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function callApify(input) {
+  const token = getConfig('apifyToken')
+  if (!token) throw new Error('Falta el Apify Token. Configúralo en ⚙ Config.')
+
+  const url = `https://api.apify.com/v2/acts/apify~instagram-scraper/run-sync-get-dataset-items?token=${encodeURIComponent(token)}`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+    signal: AbortSignal.timeout(120_000),
+  })
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '')
+    let msg = `Apify HTTP ${res.status}`
+    try {
+      const e = JSON.parse(errText)
+      if (e.error?.type === 'not-enough-usage-to-run-paid-actor') {
+        msg = 'Sin créditos en Apify. Recarga en console.apify.com/billing'
+      } else if (e.error?.message) {
+        msg = `Apify: ${e.error.message}`
+      }
+    } catch {}
+    throw new Error(msg)
+  }
+
+  const data = await res.json()
+  return Array.isArray(data) ? data : [data]
+}
+
+async function searchByKeywords(keywords, objetivo) {
+  const allRaw = []
+  for (let i = 0; i < keywords.length; i++) {
+    const kw = keywords[i]
+    setProgress(`Buscando keyword ${i + 1}/${keywords.length}: "${kw}"… (${allRaw.filter(x => x.type === 'Sidecar').length} carruseles hasta ahora)`)
+
+    const resultsLimit = Math.max(objetivo * 4, 15)
+    let raw = []
+    try {
+      raw = await callApify({
+        search: kw,
+        searchType: 'hashtag',
+        searchLimit: 1,
+        resultsType: 'posts',
+        resultsLimit,
+        onlyPostsNewerThan: '30 days',
+        addParentData: false,
+      })
+    } catch (err) {
+      console.error(`[Apify] Error en keyword "${kw}":`, err)
+      toast(`Error en "${kw}": ${err.message}`, 'error')
+      continue
+    }
+
+    console.log(`[Apify] "${kw}": ${raw.length} posts, ${raw.filter(x => x.type === 'Sidecar').length} Sidecars`)
+    allRaw.push(...raw)
+
+    // Early stop cuando hay suficientes Sidecars — no gastar más créditos
+    if (allRaw.filter(x => x.type === 'Sidecar').length >= objetivo) break
+  }
+
+  // CRÍTICO: filtrar desde el raw, antes de cualquier normalización
+  return allRaw.filter(i => i.type === 'Sidecar').slice(0, objetivo)
+}
+
+async function searchByUrls(urls) {
+  setProgress('Buscando por URLs directas…')
+  const raw = await callApify({
+    directUrls: urls,
+    resultsType: 'posts',
+    resultsLimit: urls.length * 2,
+    addParentData: false,
+  })
+  console.log(`[Apify] URLs: ${raw.length} posts, ${raw.filter(x => x.type === 'Sidecar').length} Sidecars`)
+  return raw.filter(i => i.type === 'Sidecar')
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RESULTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+let foundCarousels = []
+let selectedIds = new Set()
+
+function renderResults(carousels) {
+  foundCarousels = carousels
+  selectedIds.clear()
+
+  const section = document.getElementById('resultsSection')
+  const grid = document.getElementById('resultsGrid')
+  const count = document.getElementById('resultsCount')
+
+  if (carousels.length === 0) {
+    section.style.display = ''
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="icon">🔍</div>
+      <p>No se encontraron carruseles. Prueba con otras keywords o sube el objetivo.</p>
+    </div>`
+    count.textContent = '0'
+    updateAdaptBtn()
+    return
+  }
+
+  section.style.display = ''
+  count.textContent = carousels.length
+
+  grid.innerHTML = carousels.map((c, idx) => {
+    const id = c.shortCode || idx
+    const likes = c.likesCount ? `❤ ${c.likesCount.toLocaleString()}` : ''
+    const date = c.timestamp ? new Date(c.timestamp).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' }) : ''
+    const meta = [likes, date].filter(Boolean).join(' · ')
+    const caption = (c.caption || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+    return `<div class="carousel-card" data-id="${id}" data-idx="${idx}" onclick="toggleSelect(this)">
+      ${c.displayUrl
+        ? `<img class="card-thumb" src="${c.displayUrl}" alt="" loading="lazy" onerror="this.outerHTML='<div class=\\"card-thumb-placeholder\\">📷</div>'">`
+        : `<div class="card-thumb-placeholder">📷</div>`
+      }
+      <div class="card-body">
+        <div class="card-account">@${c.ownerUsername || 'desconocido'}</div>
+        ${meta ? `<div class="card-meta">${meta}</div>` : ''}
+        <div class="card-caption">${caption || '<em>Sin caption</em>'}</div>
+        <a class="card-link" href="${c.url || '#'}" target="_blank" onclick="event.stopPropagation()">Ver en Instagram ↗</a>
+      </div>
+    </div>`
+  }).join('')
+
+  updateAdaptBtn()
+}
+
+function toggleSelect(card) {
+  const idx = parseInt(card.dataset.idx)
+  const id = card.dataset.id
+  if (selectedIds.has(id)) {
+    selectedIds.delete(id)
+    card.classList.remove('selected')
+  } else {
+    selectedIds.add(id)
+    card.classList.add('selected')
+  }
+  updateAdaptBtn()
+}
+
+function updateAdaptBtn() {
+  const n = selectedIds.size
+  document.getElementById('selectedCount').textContent = n > 0 ? `${n} seleccionado${n > 1 ? 's' : ''}` : ''
+  document.getElementById('adaptBtn').disabled = n === 0
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SEARCH HANDLERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function runKeywordSearch() {
+  const btn = document.getElementById('searchKeywordsBtn')
+  const kwText = document.getElementById('keywords').value.trim()
+  const objetivo = parseInt(document.getElementById('objetivo').value) || 5
+
+  if (!kwText) { toast('Escribe al menos una keyword.', 'error'); return }
+
+  const keywords = kwText.split('\n').map(k => k.trim()).filter(Boolean)
+
+  btn.disabled = true
+  setProgress('Iniciando búsqueda…')
+  document.getElementById('resultsSection').style.display = 'none'
+  document.getElementById('adaptationsSection').style.display = 'none'
+
+  try {
+    const carousels = await searchByKeywords(keywords, objetivo)
+    setProgress('')
+    renderResults(carousels)
+    if (carousels.length > 0) {
+      toast(`✓ ${carousels.length} carrusel${carousels.length > 1 ? 'es' : ''} encontrado${carousels.length > 1 ? 's' : ''}`, 'success')
+    } else {
+      toast('No se encontraron carruseles. Prueba otras keywords.', 'error')
+    }
+  } catch (err) {
+    setProgress('')
+    toast(err.message, 'error')
+    console.error(err)
+  } finally {
+    btn.disabled = false
+  }
+}
+
+async function runUrlSearch() {
+  const btn = document.getElementById('searchUrlsBtn')
+  const urlText = document.getElementById('urls').value.trim()
+
+  if (!urlText) { toast('Pega al menos una URL.', 'error'); return }
+
+  const urls = urlText.split('\n').map(u => u.trim()).filter(u => u.startsWith('http'))
+
+  btn.disabled = true
+  document.getElementById('resultsSection').style.display = 'none'
+  document.getElementById('adaptationsSection').style.display = 'none'
+
+  try {
+    const carousels = await searchByUrls(urls)
+    setProgress('')
+    renderResults(carousels)
+    if (carousels.length > 0) {
+      toast(`✓ ${carousels.length} carrusel${carousels.length > 1 ? 'es' : ''} encontrado${carousels.length > 1 ? 's' : ''}`, 'success')
+    } else {
+      toast('Las URLs no contienen carruseles (tipo Sidecar).', 'error')
+    }
+  } catch (err) {
+    setProgress('')
+    toast(err.message, 'error')
+    console.error(err)
+  } finally {
+    btn.disabled = false
+  }
+}
+
+document.getElementById('searchKeywordsBtn').addEventListener('click', runKeywordSearch)
+document.getElementById('searchUrlsBtn').addEventListener('click', runUrlSearch)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADAPTATION — Claude via OpenRouter
+// ─────────────────────────────────────────────────────────────────────────────
+
+const STARTLAB_CONTEXT = `## EMPRESA: StartLab — Plataforma de escalado para negocios digitales B2B
+
+StartLab es una empresa de educación y consultoría B2B con 10+ años, 800+ clientes y equipo de 16 personas. Ayuda a dueños de negocios digitales de servicios a pasar de operaciones frágiles a empresas sistematizadas, rentables y predecibles.
+
+**ICP:** Coaches, consultores, agencias digitales, infoproductores. Facturan 5k-30k USD/mes con inestabilidad (ME6) o 20k-300k con operación frágil (ME7).
+
+**Dolores específicos:** Facturación inestable (un mes espectacular, al siguiente no saben qué va a pasar). Esclavos del contenido sin retorno predecible. Picos de lanzamientos seguidos de meses vacíos. Clientes de bajo ticket que exigen demasiado. Miedo a contratar sin ingresos predecibles. Son el "pulpo": el negocio no funciona sin su presencia.
+
+**Desean:** 5-15 clientes premium +2k USD | 30+ llamadas calificadas/mes | Tasa cierre 20%+ | 90 días predecibles | Márgenes 30%+
+
+**Terminología OBLIGATORIA:** sistema predecible, captación automatizada, clientes premium, promesa de alto valor, llamadas calificadas, setter, closer, tasa de cierre, ingresos recurrentes, 90 días, escalar sin lanzamientos, facturación predecible, libertad operativa
+
+**PROHIBIDO:** emprender desde cero, primeros 1k, más seguidores, más contenido, crecer en redes, motivación genérica, métricas inventadas, principiantes sin negocio validado
+
+**Estructura retórica OBLIGATORIA:** "Lo que la mayoría hace → Por qué es un problema → Lo que genera → Lo que debes hacer → Lo que obtienes"
+
+**CTA:** "Si ya facturas entre X y X al mes y quieres escalar a 50k-80k con un sistema predecible, el enlace está abajo. Sin compromiso. Solo estructura."`
+
+function buildAdaptPrompt(carousel) {
+  return `Eres el estratega de contenido #1 de StartLab. Tu trabajo es adaptar carruseles de Instagram al contexto de StartLab, conservando la mecánica viral del original pero reemplazando el contenido por los dolores y soluciones del ICP de StartLab.
+
+IMPORTANTE: Los carruseles de Instagram son imágenes (no video). Solo tienes el caption del post. Adapta basándote únicamente en el caption.
+
+${STARTLAB_CONTEXT}
+
+---
+
+## CARRUSEL ORIGINAL A ADAPTAR
+
+**Cuenta:** @${carousel.ownerUsername || 'desconocido'}
+**Likes:** ${(carousel.likesCount || 0).toLocaleString()}
+
+**Caption original:**
+${carousel.caption || '(sin caption)'}
+
+---
+
+## INSTRUCCIONES
+
+Adapta este carrusel para el ICP de StartLab. Genera 7-10 slides:
+- Slide 1 = portada (gancho directo al dolor del ICP, máx 8 palabras en título)
+- Slides intermedios = contenido (estructura retórica StartLab)
+- Último slide = CTA StartLab
+
+JSON estricto (sin markdown, sin texto extra):
+{
+  "hook_adaptado": "Hook al dolor del ICP (máx 12 palabras)",
+  "hook_variantes": [
+    "Variante 1: ángulo de inestabilidad financiera",
+    "Variante 2: ángulo de dependencia de lanzamientos",
+    "Variante 3: ángulo de esclavitud del contenido"
+  ],
+  "guion_adaptado": "Guion completo del carrusel. Saltos de línea para ritmo. Estructura retórica StartLab. CTA al final.",
+  "carrusel": {
+    "slides": [
+      {"numero": 1, "tipo": "portada", "titulo": "Gancho (máx 8 palabras)", "subtitulo": "Completa la promesa (máx 12 palabras)"},
+      {"numero": 2, "tipo": "contenido", "titulo": "Título corto", "cuerpo": "Texto. Bullets con • si aplica."},
+      {"numero": 3, "tipo": "contenido", "titulo": "Título corto", "cuerpo": "Texto del slide."},
+      {"numero": 4, "tipo": "contenido", "titulo": "Título corto", "cuerpo": "Texto del slide."},
+      {"numero": 5, "tipo": "contenido", "titulo": "Título corto", "cuerpo": "Texto del slide."},
+      {"numero": 6, "tipo": "contenido", "titulo": "Título corto", "cuerpo": "Texto del slide."},
+      {"numero": 7, "tipo": "cta", "titulo": "CTA final StartLab", "cuerpo": "Si ya facturas entre X y X al mes y quieres escalar a 50k-80k con un sistema predecible, el enlace está abajo. Sin compromiso. Solo estructura."}
+    ],
+    "cta_ultimo_slide": "CTA de cierre"
+  }
+}`
+}
+
+function extractJson(text) {
+  let cleaned = text.trim()
+  const codeBlock = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/)
+  if (codeBlock) cleaned = codeBlock[1].trim()
+  try { return JSON.parse(cleaned) } catch {}
+  const first = cleaned.indexOf('{'), last = cleaned.lastIndexOf('}')
+  if (first !== -1 && last > first) {
+    try { return JSON.parse(cleaned.slice(first, last + 1)) } catch {}
+  }
+  return null
+}
+
+function toText(val) {
+  if (val == null) return ''
+  if (typeof val === 'string') return val
+  if (Array.isArray(val)) return val.map(i =>
+    typeof i === 'string' ? i :
+    (i.etiqueta && i.texto) ? `${i.etiqueta}\n${i.texto}` :
+    (i.texto) ? String(i.texto) :
+    JSON.stringify(i)
+  ).join('\n\n')
+  if (typeof val === 'object') {
+    if (val.texto) return String(val.texto)
+    return Object.entries(val).map(([k, v]) => `${k.toUpperCase()}: ${v}`).join('\n\n')
+  }
+  return String(val)
+}
+
+function normalizeSlides(slides) {
+  if (!slides) return []
+  const arr = Array.isArray(slides) ? slides : Object.values(slides)
+  return arr.map((s, i) => {
+    if (!s || typeof s !== 'object') return { numero: i + 1, tipo: 'contenido', titulo: String(s || ''), cuerpo: '' }
+    return {
+      numero: s.numero ?? i + 1,
+      tipo: s.tipo || 'contenido',
+      titulo: toText(s.titulo) || '',
+      ...(s.subtitulo ? { subtitulo: toText(s.subtitulo) } : {}),
+      cuerpo: toText(s.cuerpo) || '',
+    }
+  })
+}
+
+async function adaptCarousel(carousel) {
+  const key = getConfig('openrouterKey')
+  if (!key) throw new Error('Falta la OpenRouter API Key. Configúrala en ⚙ Config.')
+
+  const caption = carousel.caption || ''
+  if (!caption) throw new Error('Este carrusel no tiene caption — no hay contenido para adaptar.')
+
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${key}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'anthropic/claude-sonnet-4-6',
+      max_tokens: 8000,
+      response_format: { type: 'json_object' },
+      provider: { order: ['Anthropic'] },
+      messages: [{ role: 'user', content: buildAdaptPrompt(carousel) }],
+    }),
+    signal: AbortSignal.timeout(120_000),
+  })
+
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`OpenRouter ${res.status}: ${err.slice(0, 200)}`)
+  }
+
+  const data = await res.json()
+  const rawText = data.choices[0].message.content.trim()
+  const parsed = extractJson(rawText)
+
+  if (!parsed) throw new Error('No se pudo parsear la respuesta de Claude. Intenta de nuevo.')
+
+  return {
+    hook_adaptado: toText(parsed.hook_adaptado),
+    hook_variantes: Array.isArray(parsed.hook_variantes) ? parsed.hook_variantes.map(toText) : [],
+    guion_adaptado: toText(parsed.guion_adaptado),
+    carrusel: {
+      slides: normalizeSlides(parsed.carrusel?.slides),
+      cta_ultimo_slide: toText(parsed.carrusel?.cta_ultimo_slide),
+    },
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADAPT HANDLER
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function runAdaptation() {
+  const btn = document.getElementById('adaptBtn')
+  const selected = foundCarousels.filter((c, i) => {
+    const id = c.shortCode || String(i)
+    return selectedIds.has(id)
+  })
+
+  if (selected.length === 0) { toast('Selecciona al menos un carrusel.', 'error'); return }
+
+  btn.disabled = true
+  const section = document.getElementById('adaptationsSection')
+  const list = document.getElementById('adaptationsList')
+  section.style.display = ''
+  list.innerHTML = selected.map((c, i) => `
+    <div class="adaptation-block" id="adapt-${i}">
+      <div class="adaptation-header">
+        <h3>@${c.ownerUsername || 'desconocido'} — Adaptando…</h3>
+        <span class="spinner"></span>
+      </div>
+    </div>`).join('')
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+  for (let i = 0; i < selected.length; i++) {
+    const carousel = selected[i]
+    const block = document.getElementById(`adapt-${i}`)
+    setProgress(`Adaptando ${i + 1}/${selected.length}: @${carousel.ownerUsername || 'desconocido'}…`)
+
+    try {
+      const adaptation = await adaptCarousel(carousel)
+      renderAdaptation(block, carousel, adaptation)
+    } catch (err) {
+      block.innerHTML = `
+        <div class="adaptation-header">
+          <h3>@${carousel.ownerUsername || 'desconocido'} — Error</h3>
+        </div>
+        <div class="adaptation-body">
+          <p style="color:var(--danger)">${err.message}</p>
+        </div>`
+      toast(`Error adaptando @${carousel.ownerUsername}: ${err.message}`, 'error')
+    }
+  }
+
+  setProgress('')
+  btn.disabled = false
+}
+
+document.getElementById('adaptBtn').addEventListener('click', runAdaptation)
+
+function renderAdaptation(block, carousel, adaptation) {
+  const slides = adaptation.carrusel?.slides || []
+  const slidesHtml = slides.map(s => `
+    <div class="slide-card">
+      <div class="slide-num">Slide ${s.numero} · ${s.tipo}</div>
+      <div class="slide-titulo">${esc(s.titulo)}</div>
+      ${s.subtitulo ? `<div class="slide-subtitulo">${esc(s.subtitulo)}</div>` : ''}
+      ${s.cuerpo ? `<div class="slide-cuerpo">${esc(s.cuerpo)}</div>` : ''}
+    </div>`).join('')
+
+  const variantesHtml = adaptation.hook_variantes.map(v =>
+    `<div class="hook-variant">${esc(v)}</div>`
+  ).join('')
+
+  block.innerHTML = `
+    <div class="adaptation-header">
+      <h3>@${esc(carousel.ownerUsername || 'desconocido')}</h3>
+      <div style="display:flex;gap:8px">
+        <a href="${carousel.url || '#'}" target="_blank" class="btn btn-secondary btn-sm">Ver original ↗</a>
+        <button class="btn btn-primary btn-sm" onclick="saveToNotion(this, ${JSON.stringify(carousel).replace(/"/g, '&quot;')}, ${JSON.stringify(adaptation).replace(/"/g, '&quot;')})">
+          Guardar en Notion
+        </button>
+      </div>
+    </div>
+    <div class="adaptation-body">
+      <div class="section-label">Hook adaptado</div>
+      <div class="hook-box">${esc(adaptation.hook_adaptado)}</div>
+
+      ${variantesHtml ? `<div class="section-label">Variantes del hook</div>
+      <div class="hook-variants">${variantesHtml}</div>` : ''}
+
+      <div class="section-label">Slides (${slides.length})</div>
+      <div class="slides-grid">${slidesHtml}</div>
+
+      ${adaptation.guion_adaptado ? `<div class="section-label">Guión adaptado</div>
+      <div class="text-block">${esc(adaptation.guion_adaptado)}</div>` : ''}
+    </div>`
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NOTION
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function saveToNotion(btn, carousel, adaptation) {
+  const token = getConfig('notionToken')
+  const dbId = getConfig('notionDbId')
+
+  if (!token || !dbId) {
+    toast('Configura el Notion Token y el Database ID en ⚙ Config.', 'error')
+    return
+  }
+
+  btn.disabled = true
+  btn.textContent = 'Guardando…'
+
+  try {
+    const url = await createNotionPage(carousel, adaptation, token, dbId)
+    btn.textContent = '✓ Guardado en Notion'
+    btn.className = 'btn btn-sm'
+    btn.style.background = 'var(--success)'
+    btn.style.color = '#121212'
+    // Añadir link
+    const link = document.createElement('a')
+    link.href = url
+    link.target = '_blank'
+    link.className = 'btn btn-secondary btn-sm'
+    link.textContent = 'Abrir en Notion ↗'
+    btn.parentElement.appendChild(link)
+    toast('✓ Página creada en Notion', 'success')
+  } catch (err) {
+    btn.disabled = false
+    btn.textContent = 'Guardar en Notion'
+    toast(`Error Notion: ${err.message}`, 'error')
+    console.error(err)
+  }
+}
+
+async function createNotionPage(carousel, adaptation, token, databaseId) {
+  const title = `@${carousel.ownerUsername || 'ig'} — Carrusel adaptado`
+  const blocks = buildNotionBlocks(carousel, adaptation).slice(0, 100)
+
+  const res = await fetch('https://api.notion.com/v1/pages', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Notion-Version': '2022-06-28',
+    },
+    body: JSON.stringify({
+      parent: { database_id: databaseId },
+      properties: {
+        'Nombre': { title: [{ text: { content: title } }] },
+      },
+      children: blocks,
+    }),
+  })
+
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Notion ${res.status}: ${err.slice(0, 300)}`)
+  }
+
+  const page = await res.json()
+  // Construir URL manualmente — page.url a veces no abre la página
+  return `https://www.notion.so/${page.id.replace(/-/g, '')}`
+}
+
+function buildNotionBlocks(carousel, adaptation) {
+  const blocks = []
+
+  const h2 = t => ({ object: 'block', type: 'heading_2', heading_2: { rich_text: [{ type: 'text', text: { content: String(t).slice(0, 2000) } }] } })
+  const h3 = t => ({ object: 'block', type: 'heading_3', heading_3: { rich_text: [{ type: 'text', text: { content: String(t).slice(0, 2000) } }] } })
+  const para = t => {
+    if (!t?.trim()) return null
+    const chunks = []
+    const str = String(t)
+    for (let i = 0; i < str.length; i += 1900) {
+      chunks.push({ type: 'text', text: { content: str.slice(i, i + 1900) } })
+    }
+    return { object: 'block', type: 'paragraph', paragraph: { rich_text: chunks } }
+  }
+  const div = { object: 'block', type: 'divider', divider: {} }
+
+  // Original
+  blocks.push(h2('Carrusel Original'))
+  blocks.push(para(`@${carousel.ownerUsername || '?'} · ${(carousel.likesCount || 0).toLocaleString()} likes`))
+  blocks.push(para(carousel.url || ''))
+  if (carousel.caption) blocks.push(para(carousel.caption))
+  blocks.push(div)
+
+  // Hook
+  if (adaptation.hook_adaptado) {
+    blocks.push(h2('Hook Adaptado'))
+    blocks.push(para(adaptation.hook_adaptado))
+    if (adaptation.hook_variantes?.length) {
+      blocks.push(h3('Variantes'))
+      adaptation.hook_variantes.forEach(v => blocks.push(para(`• ${v}`)))
+    }
+    blocks.push(div)
+  }
+
+  // Slides
+  const slides = adaptation.carrusel?.slides || []
+  if (slides.length) {
+    blocks.push(h2(`Slides Adaptados (${slides.length})`))
+    slides.forEach(s => {
+      blocks.push(h3(`Slide ${s.numero} — ${s.tipo}`))
+      if (s.titulo) blocks.push(para(s.titulo))
+      if (s.subtitulo) blocks.push(para(s.subtitulo))
+      if (s.cuerpo) blocks.push(para(s.cuerpo))
+    })
+    blocks.push(div)
+  }
+
+  // Guion
+  if (adaptation.guion_adaptado) {
+    blocks.push(h2('Guión Adaptado'))
+    blocks.push(para(adaptation.guion_adaptado))
+  }
+
+  return blocks.filter(Boolean)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────────────────────
+
+loadConfig()
+document.getElementById('adaptBtn').disabled = true
+</script>
+
+</body>
+</html>
