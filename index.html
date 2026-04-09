@@ -3,10 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Carruseles StartLab</title>
+  <title>StartLab Carruseles</title>
   <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* Scrollbar oscuro */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+    ::-webkit-scrollbar-button { display: none; }
 
     :root {
       --bg: #121212;
@@ -89,8 +96,9 @@
     .card-subtitle {
       font-size: 0.78rem;
       color: var(--text-3);
-      margin-top: -10px;
-      margin-bottom: 16px;
+      margin-top: 4px;
+      margin-bottom: 20px;
+      line-height: 1.5;
     }
 
     /* ── Forms ── */
@@ -283,12 +291,12 @@
     .carousel-card.selected .check-badge { display: flex; }
 
     .card-thumb {
-      width: 100%; aspect-ratio: 1;
+      width: 100%; aspect-ratio: 4/5;
       object-fit: cover; display: block;
       background: var(--surface2);
     }
     .card-thumb-ph {
-      width: 100%; aspect-ratio: 1;
+      width: 100%; aspect-ratio: 4/5;
       background: var(--surface2);
       display: flex; align-items: center; justify-content: center;
       color: var(--text-3); font-size: 2rem;
@@ -404,7 +412,7 @@
     .config-section-title {
       font-size: 1rem;
       font-weight: 700;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
     .save-row {
       display: flex;
@@ -453,7 +461,7 @@
 
 <!-- NAV -->
 <nav>
-  <span class="nav-brand">📸 Carruseles StartLab</span>
+  <span class="nav-brand">StartLab Carruseles</span>
   <button class="nav-tab active" data-view="buscar">Buscar</button>
   <button class="nav-tab" data-view="config">Configuración</button>
 </nav>
@@ -471,7 +479,7 @@
     <div id="tab-keywords">
       <div class="field">
         <label>Keywords (una por línea)</label>
-        <textarea id="keywords" placeholder="sistema predecible ventas&#10;captación automatizada clientes&#10;escalar consultoría&#10;clientes premium alto valor"></textarea>
+        <textarea id="keywords" placeholder="negocios&#10;emprendimiento&#10;marketing"></textarea>
       </div>
       <div class="objetivo-row">
         <label for="objetivo">Objetivo:</label>
@@ -505,6 +513,7 @@
       <h2>Carruseles encontrados (<span id="resultsCount">0</span>)</h2>
       <div class="results-actions">
         <span class="sel-count" id="selectedCount"></span>
+        <button class="btn btn-secondary btn-sm" onclick="resetSearch()">Nueva búsqueda</button>
         <button class="btn btn-primary" id="adaptBtn" disabled>✦ Adaptar seleccionados</button>
       </div>
     </div>
@@ -554,22 +563,8 @@
 
   <!-- Supabase -->
   <div class="card">
-    <div class="config-section-title">Supabase <span style="font-size:0.8rem;font-weight:400;color:var(--text-3)">(historial de adaptaciones)</span></div>
-    <p class="card-subtitle">Guarda automáticamente cada adaptación en tu base de datos · <span style="color:var(--text-3)">Ejecuta el SQL de <code>supabase_setup.sql</code> una vez en el SQL Editor de Supabase</span></p>
-    <div class="fields-row">
-      <div class="field">
-        <label>Project URL</label>
-        <input type="text" id="supabaseUrl" placeholder="https://xxxx.supabase.co">
-      </div>
-      <div class="field">
-        <label>Anon Key</label>
-        <input type="password" id="supabaseKey" placeholder="eyJ...">
-      </div>
-    </div>
-    <div class="save-row">
-      <button class="btn btn-save btn-sm" onclick="saveSection('supabase')">Guardar</button>
-      <span class="save-confirm" id="save-confirm-supabase">✓ Guardado</span>
-    </div>
+    <div class="config-section-title">Supabase <span style="font-size:0.8rem;font-weight:400;color:var(--success)">● Conectado</span></div>
+    <p class="card-subtitle">Cada adaptación se guarda automáticamente en <code>carruseles_startlab</code>. La configuración de APIs también se sincroniza en <code>app_config_carruseles</code> para que cualquier persona del equipo que abra la app ya tenga todo configurado.</p>
   </div>
 
   <!-- Notion -->
@@ -680,7 +675,6 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
 
 const ALL_KEYS = [
   'apifyToken', 'openrouterKey',
-  'supabaseUrl', 'supabaseKey',
   'notionToken', 'notionDbId',
   'notionPropTitle', 'notionPropResponsable', 'notionPropFase', 'notionValorFase',
   'promptContext', 'visionPrompt',
@@ -689,7 +683,6 @@ const ALL_KEYS = [
 const SECTION_KEYS = {
   apify: ['apifyToken'],
   openrouter: ['openrouterKey'],
-  supabase: ['supabaseUrl', 'supabaseKey'],
   notion: ['notionToken', 'notionDbId', 'notionPropTitle', 'notionPropResponsable', 'notionPropFase', 'notionValorFase'],
   prompts: ['promptContext', 'visionPrompt'],
 }
@@ -697,14 +690,14 @@ const SECTION_KEYS = {
 const SUPABASE_URL = 'https://zxfambyveewqcrxcrcbf.supabase.co'
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4ZmFtYnl2ZWV3cWNyeGNyY2JmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTU3NjAsImV4cCI6MjA5MDA3MTc2MH0.lNOX-LnhA5eNRc4tuhpVdnnunZnVGvwUDavj-wqcgnY'
 
-// Keys synced to Supabase (shared across devices). supabaseUrl/Key are hardcoded, not synced.
+// Keys synced to Supabase (shared across devices)
 const REMOTE_KEYS = ['apifyToken', 'openrouterKey', 'notionToken', 'notionDbId',
   'notionPropTitle', 'notionPropResponsable', 'notionPropFase', 'notionValorFase',
   'promptContext', 'visionPrompt', 'notionResponsableUsers']
 
 async function loadConfigFromSupabase() {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/app_config?select=id,value`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/app_config_carruseles?select=id,value`, {
       headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
     })
     if (!res.ok) return
@@ -728,7 +721,7 @@ async function saveConfigToSupabase(keys) {
   }).filter(r => r.value !== '')
   if (rows.length === 0) return
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/app_config`, {
+    await fetch(`${SUPABASE_URL}/rest/v1/app_config_carruseles`, {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_ANON,
@@ -931,13 +924,15 @@ async function searchByKeywords(keywords, objetivo) {
   const allRaw = []
   for (let i = 0; i < keywords.length; i++) {
     const kw = keywords[i]
+    // Instagram hashtags no tienen espacios — unir palabras
+    const hashtag = kw.replace(/\s+/g, '')
     const sidecarsAhora = allRaw.filter(x => x.type === 'Sidecar').length
-    setProgress(`Keyword ${i + 1}/${keywords.length}: "${kw}" — ${sidecarsAhora} carruseles encontrados`)
+    setProgress(`Keyword ${i + 1}/${keywords.length}: #${hashtag} — ${sidecarsAhora} carruseles encontrados`)
 
-    const resultsLimit = Math.max(objetivo * 4, 15)
+    const resultsLimit = Math.max(objetivo * 4, 20)
     try {
       const raw = await callApify({
-        search: kw,
+        search: hashtag,
         searchType: 'hashtag',
         searchLimit: 1,
         resultsType: 'posts',
@@ -945,11 +940,15 @@ async function searchByKeywords(keywords, objetivo) {
         onlyPostsNewerThan: '30 days',
         addParentData: false,
       })
-      console.log(`[Apify] "${kw}": ${raw.length} posts → ${raw.filter(x => x.type === 'Sidecar').length} Sidecars`)
+      const sidecarsEnEste = raw.filter(x => x.type === 'Sidecar').length
+      console.log(`[Apify] #${hashtag}: ${raw.length} posts → ${sidecarsEnEste} Sidecars (tipos: ${[...new Set(raw.map(x => x.type))].join(', ')})`)
+      if (raw.length > 0 && sidecarsEnEste === 0) {
+        toast(`#${hashtag}: ${raw.length} posts encontrados pero ninguno es carrusel. Prueba otra keyword.`, 'error')
+      }
       allRaw.push(...raw)
     } catch (err) {
-      console.error(`[Apify] Error en "${kw}":`, err)
-      toast(`Error en "${kw}": ${err.message}`, 'error')
+      console.error(`[Apify] Error en #${hashtag}:`, err)
+      toast(`Error en #${hashtag}: ${err.message}`, 'error')
     }
 
     // Early stop
@@ -1007,7 +1006,7 @@ function renderResults(carousels) {
     return `<div class="carousel-card" data-id="${esc(id)}" data-idx="${idx}" onclick="toggleSelect(this)">
       <div class="check-badge">✓</div>
       ${c.displayUrl
-        ? `<img class="card-thumb" src="${esc(c.displayUrl)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=\\"card-thumb-ph\\">📷</div>'">`
+        ? `<img class="card-thumb" src="${esc(c.displayUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='https://images.weserv.nl/?url='+encodeURIComponent(this.dataset.orig)+'&w=600&h=750&fit=cover&output=jpg';this.onerror=function(){this.outerHTML='<div class=\\"card-thumb-ph\\">📷</div>'}" data-orig="${esc(c.displayUrl)}">`
         : `<div class="card-thumb-ph">📷</div>`}
       <div class="card-body">
         <div class="card-account">@${esc(c.ownerUsername || 'desconocido')}</div>
@@ -1100,6 +1099,16 @@ async function runUrlSearch() {
 
 document.getElementById('searchKeywordsBtn').addEventListener('click', runKeywordSearch)
 document.getElementById('searchUrlsBtn').addEventListener('click', runUrlSearch)
+
+function resetSearch() {
+  foundCarousels = []
+  selectedIds.clear()
+  document.getElementById('resultsSection').style.display = 'none'
+  document.getElementById('adaptationsSection').style.display = 'none'
+  document.getElementById('keywords').value = ''
+  document.getElementById('urls').value = ''
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ADAPTATION
@@ -1348,15 +1357,12 @@ async function adaptCarousel(carousel) {
 }
 
 async function saveToSupabase(carousel, adaptation, notionUrl) {
-  const supabaseUrl = getConfig('supabaseUrl')
-  const supabaseKey = getConfig('supabaseKey')
-  if (!supabaseUrl || !supabaseKey) return
   try {
-    await fetch(`${supabaseUrl}/rest/v1/carruseles_adaptados`, {
+    await fetch(`${SUPABASE_URL}/rest/v1/carruseles_startlab`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${supabaseKey}`,
-        'apikey': supabaseKey,
+        'Authorization': `Bearer ${SUPABASE_ANON}`,
+        'apikey': SUPABASE_ANON,
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal',
       },
@@ -1370,7 +1376,7 @@ async function saveToSupabase(carousel, adaptation, notionUrl) {
         notion_url: notionUrl || null,
       }),
     })
-    console.log('[Supabase] Carrusel guardado')
+    console.log('[Supabase] Carrusel guardado en carruseles_startlab')
   } catch (e) {
     console.warn('[Supabase] Error al guardar:', e.message)
   }
