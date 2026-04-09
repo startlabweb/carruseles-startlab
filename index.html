@@ -10,16 +10,20 @@
 
     :root {
       --bg: #121212;
-      --surface: #1e1e1e;
-      --surface2: #2a2a2a;
-      --border: #333;
+      --surface: #1c1c1c;
+      --surface2: #252525;
+      --surface3: #2e2e2e;
+      --border: #303030;
+      --border-light: #3a3a3a;
       --gold: #EAB660;
-      --gold-dark: #C09D46;
-      --text: #f0f0f0;
-      --text-muted: #888;
+      --gold-dim: #c49040;
+      --text: #efefef;
+      --text-2: #b0b0b0;
+      --text-3: #707070;
       --danger: #e05c5c;
-      --success: #5ce07a;
-      --radius: 10px;
+      --success: #52c97a;
+      --r: 10px;
+      --r-sm: 7px;
     }
 
     body {
@@ -27,82 +31,89 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      padding: 0 0 60px;
     }
 
-    header {
+    /* ── Nav ── */
+    nav {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 16px 24px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 4px;
+      padding: 0 20px;
+      height: 52px;
       position: sticky;
       top: 0;
       z-index: 100;
     }
-
-    header h1 {
-      font-size: 1.2rem;
+    .nav-brand {
+      font-size: 1rem;
       font-weight: 700;
       color: var(--gold);
-      letter-spacing: -0.3px;
+      margin-right: 20px;
+      white-space: nowrap;
     }
-
-    .main { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
-
-    /* ── Buttons ── */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 9px 18px;
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
+    .nav-tab {
+      padding: 6px 14px;
+      border-radius: 7px;
       border: none;
-      transition: opacity 0.15s, transform 0.1s;
+      background: transparent;
+      color: var(--text-2);
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
     }
-    .btn:active { transform: scale(0.98); }
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-    .btn-primary { background: var(--gold); color: #121212; }
-    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-    .btn-sm { padding: 6px 12px; font-size: 0.82rem; }
-    .btn-danger { background: var(--danger); color: #fff; }
+    .nav-tab:hover { color: var(--text); background: var(--surface2); }
+    .nav-tab.active { background: var(--surface2); color: var(--gold); font-weight: 700; }
 
-    /* ── Config Panel ── */
-    #configPanel {
+    /* ── Layout ── */
+    .view { display: none; max-width: 880px; margin: 0 auto; padding: 28px 16px 60px; }
+    .view.active { display: block; }
+
+    /* ── Cards ── */
+    .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      margin-bottom: 20px;
-      overflow: hidden;
+      border-radius: var(--r);
+      padding: 20px;
+      margin-bottom: 16px;
     }
-    #configHeader {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 18px;
-      cursor: pointer;
-      user-select: none;
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text);
     }
-    #configHeader h2 { font-size: 0.95rem; font-weight: 600; }
-    #configHeader .chevron { transition: transform 0.2s; font-style: normal; }
-    #configHeader.open .chevron { transform: rotate(180deg); }
-    #configBody { padding: 0 18px 18px; display: none; }
-    #configBody.open { display: block; }
+    .card-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-3);
+      margin-top: -10px;
+      margin-bottom: 16px;
+    }
 
-    .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
-    @media (max-width: 600px) { .config-grid { grid-template-columns: 1fr; } }
-
-    .field label { display: block; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
-    .field input, .field textarea, .field select {
+    /* ── Forms ── */
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-2);
+      margin-bottom: 5px;
+      letter-spacing: 0.2px;
+    }
+    .field label .opt {
+      font-weight: 400;
+      color: var(--text-3);
+      margin-left: 4px;
+    }
+    .field input, .field textarea {
       width: 100%;
       background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 7px;
+      border: 1px solid var(--border-light);
+      border-radius: var(--r-sm);
       color: var(--text);
       padding: 9px 12px;
       font-family: inherit;
@@ -111,298 +122,319 @@
       transition: border-color 0.15s;
     }
     .field input:focus, .field textarea:focus { border-color: var(--gold); }
-    .field textarea { resize: vertical; min-height: 80px; }
-
-    /* ── Search Section ── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px;
-      margin-bottom: 20px;
+    .field textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+    .field .hint {
+      font-size: 0.75rem;
+      color: var(--text-3);
+      margin-top: 5px;
+      line-height: 1.4;
     }
-    .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 14px; }
 
-    .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
-    .tab {
-      padding: 7px 16px;
-      border-radius: 7px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text-muted);
+    /* Quitar flechas de inputs numéricos */
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    .fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 580px) { .fields-row { grid-template-columns: 1fr; } }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 16px 0;
+    }
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-3);
+      margin-bottom: 12px;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      border-radius: var(--r-sm);
       font-family: inherit;
       font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn-primary { background: var(--gold); color: #111; }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border-light); }
+    .btn-sm { padding: 7px 13px; font-size: 0.82rem; }
+    .btn-save { background: var(--surface2); color: var(--gold); border: 1px solid var(--gold-dim); }
+
+    /* ── Search tabs ── */
+    .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+    .tab {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border-light);
+      background: transparent;
+      color: var(--text-3);
+      font-family: inherit;
+      font-size: 0.85rem;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.15s;
     }
-    .tab.active { background: var(--gold); color: #121212; border-color: var(--gold); font-weight: 700; }
+    .tab.active { background: var(--gold); color: #111; border-color: var(--gold); font-weight: 700; }
 
-    .objetivo-row { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
-    .objetivo-row label { font-size: 0.88rem; color: var(--text-muted); white-space: nowrap; }
-    .objetivo-row input { width: 80px; text-align: center; }
+    /* Objetivo row */
+    .objetivo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .objetivo-row label { font-size: 0.88rem; color: var(--text-2); white-space: nowrap; }
+    .objetivo-input {
+      width: 72px;
+      background: var(--surface2);
+      border: 1px solid var(--border-light);
+      border-radius: var(--r-sm);
+      color: var(--text);
+      padding: 8px 10px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      text-align: center;
+      outline: none;
+    }
+    .objetivo-input:focus { border-color: var(--gold); }
+    .objetivo-row .spacer { flex: 1; }
 
     /* ── Progress ── */
     #progress {
       background: var(--surface);
-      border: 1px solid var(--gold);
-      border-radius: var(--radius);
-      padding: 14px 18px;
-      margin-bottom: 20px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--gold);
+      border-radius: var(--r);
+      padding: 12px 16px;
+      margin-bottom: 16px;
       display: none;
+      align-items: center;
+      gap: 10px;
     }
-    #progressText { color: var(--gold); font-weight: 600; font-size: 0.9rem; }
+    #progress.show { display: flex; }
     .spinner {
-      display: inline-block;
+      flex-shrink: 0;
       width: 14px; height: 14px;
       border: 2px solid var(--gold);
       border-top-color: transparent;
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      vertical-align: middle;
-      margin-right: 8px;
+      animation: spin 0.7s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    #progressText { font-size: 0.88rem; color: var(--text-2); }
 
     /* ── Results ── */
-    #resultsHeader {
+    .results-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 14px;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
     }
-    #resultsHeader h2 { font-size: 1rem; font-weight: 700; }
+    .results-bar h2 { font-size: 0.95rem; font-weight: 700; }
+    .results-actions { display: flex; align-items: center; gap: 8px; }
+    .sel-count { font-size: 0.82rem; color: var(--text-3); }
 
     .results-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 14px;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 12px;
     }
 
     .carousel-card {
       background: var(--surface);
       border: 2px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: var(--r);
       overflow: hidden;
       cursor: pointer;
       transition: border-color 0.15s, transform 0.1s;
       position: relative;
     }
-    .carousel-card:hover { border-color: #555; transform: translateY(-1px); }
+    .carousel-card:hover { border-color: var(--border-light); transform: translateY(-1px); }
     .carousel-card.selected { border-color: var(--gold); }
-    .carousel-card.selected::after {
-      content: '✓';
+    .check-badge {
+      display: none;
       position: absolute;
       top: 8px; right: 8px;
       width: 22px; height: 22px;
       background: var(--gold);
-      color: #121212;
+      color: #111;
       border-radius: 50%;
-      display: flex;
+      font-size: 0.72rem;
+      font-weight: 800;
       align-items: center;
       justify-content: center;
-      font-weight: 700;
-      font-size: 0.75rem;
-      line-height: 22px;
-      text-align: center;
     }
+    .carousel-card.selected .check-badge { display: flex; }
 
     .card-thumb {
-      width: 100%;
-      aspect-ratio: 1;
-      object-fit: cover;
-      display: block;
+      width: 100%; aspect-ratio: 1;
+      object-fit: cover; display: block;
       background: var(--surface2);
     }
-    .card-thumb-placeholder {
-      width: 100%;
-      aspect-ratio: 1;
+    .card-thumb-ph {
+      width: 100%; aspect-ratio: 1;
       background: var(--surface2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-muted);
-      font-size: 2rem;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-3); font-size: 2rem;
     }
     .card-body { padding: 12px; }
-    .card-account { font-weight: 700; font-size: 0.88rem; color: var(--gold); margin-bottom: 4px; }
-    .card-meta { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px; }
+    .card-account { font-weight: 700; font-size: 0.85rem; color: var(--gold); margin-bottom: 3px; }
+    .card-meta { font-size: 0.75rem; color: var(--text-3); margin-bottom: 8px; }
     .card-caption {
-      font-size: 0.82rem;
-      color: #ccc;
-      line-height: 1.4;
-      display: -webkit-box;
-      -webkit-line-clamp: 4;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      font-size: 0.8rem; color: var(--text-2); line-height: 1.45;
+      display: -webkit-box; -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical; overflow: hidden;
     }
     .card-link {
-      display: inline-block;
-      margin-top: 8px;
-      font-size: 0.78rem;
-      color: var(--gold);
-      text-decoration: none;
+      display: inline-block; margin-top: 7px;
+      font-size: 0.75rem; color: var(--gold); text-decoration: none;
     }
     .card-link:hover { text-decoration: underline; }
 
-    /* ── Adaptation ── */
-    .adaptation-block {
+    /* ── Adaptations ── */
+    .adapt-block {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      margin-bottom: 20px;
+      border-radius: var(--r);
       overflow: hidden;
+      margin-bottom: 16px;
     }
-    .adaptation-header {
+    .adapt-header {
       padding: 14px 18px;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
     }
-    .adaptation-header h3 { font-size: 0.95rem; font-weight: 700; }
-    .adaptation-body { padding: 18px; }
+    .adapt-header h3 { font-size: 0.9rem; font-weight: 700; }
+    .adapt-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .adapt-body { padding: 18px; }
 
-    .section-label {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--text-muted);
-      font-weight: 600;
-      margin-bottom: 8px;
-      margin-top: 18px;
+    .label-sm {
+      font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.7px;
+      color: var(--text-3); margin-bottom: 7px; margin-top: 16px;
     }
-    .section-label:first-child { margin-top: 0; }
+    .label-sm:first-child { margin-top: 0; }
 
     .hook-box {
       background: var(--surface2);
       border-left: 3px solid var(--gold);
-      padding: 12px 14px;
-      border-radius: 0 7px 7px 0;
-      font-size: 0.92rem;
-      line-height: 1.5;
-      margin-bottom: 8px;
+      padding: 11px 14px;
+      border-radius: 0 var(--r-sm) var(--r-sm) 0;
+      font-size: 0.9rem; line-height: 1.5;
     }
-    .hook-variants { display: flex; flex-direction: column; gap: 6px; }
+    .hook-variants { display: flex; flex-direction: column; gap: 5px; }
     .hook-variant {
       background: var(--surface2);
       border: 1px solid var(--border);
-      border-radius: 7px;
+      border-radius: var(--r-sm);
       padding: 8px 12px;
-      font-size: 0.85rem;
-      color: #ccc;
+      font-size: 0.83rem; color: var(--text-2);
     }
 
     .slides-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 8px;
     }
     .slide-card {
       background: var(--surface2);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      font-size: 0.82rem;
+      border-radius: var(--r-sm);
+      padding: 11px;
     }
-    .slide-num {
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: var(--gold);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 6px;
-    }
-    .slide-titulo { font-weight: 700; margin-bottom: 4px; line-height: 1.3; }
-    .slide-subtitulo { color: var(--text-muted); margin-bottom: 6px; font-size: 0.78rem; }
-    .slide-cuerpo { color: #bbb; line-height: 1.4; white-space: pre-line; }
+    .slide-num { font-size: 0.68rem; font-weight: 700; color: var(--gold); letter-spacing: 0.4px; margin-bottom: 5px; }
+    .slide-titulo { font-weight: 700; font-size: 0.83rem; margin-bottom: 3px; line-height: 1.3; }
+    .slide-subtitulo { font-size: 0.77rem; color: var(--text-3); margin-bottom: 5px; }
+    .slide-cuerpo { font-size: 0.8rem; color: var(--text-2); line-height: 1.4; white-space: pre-line; }
 
     .text-block {
       background: var(--surface2);
-      border-radius: 7px;
+      border-radius: var(--r-sm);
       padding: 12px 14px;
-      font-size: 0.85rem;
-      line-height: 1.6;
-      color: #ccc;
-      white-space: pre-line;
+      font-size: 0.85rem; line-height: 1.6;
+      color: var(--text-2); white-space: pre-line;
     }
 
-    /* ── Toast / Error ── */
+    /* ── Empty state ── */
+    .empty {
+      text-align: center; padding: 48px 20px;
+      color: var(--text-3); font-size: 0.88rem;
+    }
+    .empty .icon { font-size: 2.2rem; margin-bottom: 10px; }
+
+    /* ── Toast ── */
     #toast {
-      position: fixed;
-      bottom: 20px; right: 20px;
-      background: #333;
+      position: fixed; bottom: 20px; right: 20px;
+      background: var(--surface2);
       color: var(--text);
-      padding: 12px 18px;
+      padding: 11px 16px;
       border-radius: 9px;
-      font-size: 0.88rem;
-      max-width: 360px;
-      border: 1px solid var(--border);
-      opacity: 0;
-      transform: translateY(10px);
+      font-size: 0.85rem;
+      max-width: 340px;
+      border: 1px solid var(--border-light);
+      opacity: 0; transform: translateY(8px);
       transition: opacity 0.2s, transform 0.2s;
-      z-index: 1000;
+      z-index: 999;
     }
     #toast.show { opacity: 1; transform: translateY(0); }
-    #toast.error { border-color: var(--danger); }
-    #toast.success { border-color: var(--success); }
+    #toast.error { border-color: var(--danger); color: #f09090; }
+    #toast.success { border-color: var(--success); color: #80e0a0; }
 
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--text-muted);
-      font-size: 0.9rem;
+    /* ── Config specific ── */
+    .config-section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
     }
-    .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .save-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .save-confirm {
+      font-size: 0.8rem;
+      color: var(--success);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .save-confirm.show { opacity: 1; }
   </style>
 </head>
 <body>
 
-<header>
-  <h1>📸 Carruseles StartLab</h1>
-  <button class="btn btn-secondary btn-sm" id="toggleConfig">⚙ Config</button>
-</header>
+<!-- NAV -->
+<nav>
+  <span class="nav-brand">📸 Carruseles StartLab</span>
+  <button class="nav-tab active" data-view="buscar">Buscar</button>
+  <button class="nav-tab" data-view="config">Configuración</button>
+</nav>
 
-<div class="main">
+<!-- ── VISTA: BUSCAR ── -->
+<div class="view active" id="view-buscar">
 
-  <!-- CONFIG -->
-  <div id="configPanel">
-    <div id="configHeader">
-      <h2>Configuración de API Keys</h2>
-      <em class="chevron">▼</em>
-    </div>
-    <div id="configBody">
-      <div class="config-grid">
-        <div class="field">
-          <label>Apify Token</label>
-          <input type="password" id="apifyToken" placeholder="apify_api_...">
-        </div>
-        <div class="field">
-          <label>OpenRouter API Key</label>
-          <input type="password" id="openrouterKey" placeholder="sk-or-...">
-        </div>
-        <div class="field">
-          <label>Notion Integration Token</label>
-          <input type="password" id="notionToken" placeholder="secret_...">
-        </div>
-        <div class="field">
-          <label>Notion Database ID</label>
-          <input type="text" id="notionDbId" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
-        </div>
-      </div>
-      <button class="btn btn-primary btn-sm" id="saveConfig">Guardar configuración</button>
-      <span id="configStatus" style="margin-left:10px; font-size:0.82rem; color:var(--text-muted)"></span>
-    </div>
-  </div>
-
-  <!-- SEARCH -->
+  <!-- Search card -->
   <div class="card">
-    <div class="card-title">Buscar carruseles</div>
-
     <div class="tabs">
       <button class="tab active" data-tab="keywords">Por keywords</button>
       <button class="tab" data-tab="urls">Por URLs directas</button>
@@ -414,9 +446,11 @@
         <textarea id="keywords" placeholder="sistema predecible ventas&#10;captación automatizada clientes&#10;escalar consultoría&#10;clientes premium alto valor"></textarea>
       </div>
       <div class="objetivo-row">
-        <label for="objetivo">Objetivo de carruseles:</label>
-        <input class="field" type="number" id="objetivo" value="5" min="1" max="50">
-        <button class="btn btn-primary" id="searchKeywordsBtn">Buscar</button>
+        <label for="objetivo">Objetivo:</label>
+        <input class="objetivo-input" type="number" id="objetivo" value="5" min="1" max="50" placeholder="5">
+        <span style="font-size:0.82rem;color:var(--text-3)">carruseles</span>
+        <span class="spacer"></span>
+        <button class="btn btn-primary" id="searchKeywordsBtn">Buscar carruseles</button>
       </div>
     </div>
 
@@ -431,28 +465,110 @@
     </div>
   </div>
 
-  <!-- PROGRESS -->
+  <!-- Progress -->
   <div id="progress">
-    <span class="spinner"></span>
+    <div class="spinner"></div>
     <span id="progressText">Buscando...</span>
   </div>
 
-  <!-- RESULTS -->
+  <!-- Results -->
   <div id="resultsSection" style="display:none">
-    <div id="resultsHeader">
+    <div class="results-bar">
       <h2>Carruseles encontrados (<span id="resultsCount">0</span>)</h2>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span id="selectedCount" style="font-size:0.85rem;color:var(--text-muted)"></span>
-        <button class="btn btn-primary" id="adaptBtn">✦ Adaptar seleccionados</button>
+      <div class="results-actions">
+        <span class="sel-count" id="selectedCount"></span>
+        <button class="btn btn-primary" id="adaptBtn" disabled>✦ Adaptar seleccionados</button>
       </div>
     </div>
     <div id="resultsGrid" class="results-grid"></div>
   </div>
 
-  <!-- ADAPTATIONS -->
+  <!-- Adaptations -->
   <div id="adaptationsSection" style="display:none">
-    <h2 style="margin-bottom:16px; font-size:1rem; font-weight:700">Adaptaciones</h2>
+    <div class="results-bar" style="margin-top:8px">
+      <h2>Adaptaciones</h2>
+    </div>
     <div id="adaptationsList"></div>
+  </div>
+
+</div>
+
+<!-- ── VISTA: CONFIGURACIÓN ── -->
+<div class="view" id="view-config">
+
+  <!-- Apify -->
+  <div class="card">
+    <div class="config-section-title">Apify</div>
+    <p class="card-subtitle">Scraping de Instagram · $1.50 / 1,000 posts · <a href="https://console.apify.com/account/integrations" target="_blank" style="color:var(--gold)">Obtener token</a></p>
+    <div class="field">
+      <label>API Token</label>
+      <input type="password" id="apifyToken" placeholder="apify_api_...">
+    </div>
+    <div class="save-row">
+      <button class="btn btn-save btn-sm" onclick="saveSection('apify')">Guardar</button>
+      <span class="save-confirm" id="save-confirm-apify">✓ Guardado</span>
+    </div>
+  </div>
+
+  <!-- OpenRouter -->
+  <div class="card">
+    <div class="config-section-title">OpenRouter</div>
+    <p class="card-subtitle">Adaptación con Claude Sonnet · <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--gold)">Obtener API key</a></p>
+    <div class="field">
+      <label>API Key</label>
+      <input type="password" id="openrouterKey" placeholder="sk-or-...">
+    </div>
+    <div class="save-row">
+      <button class="btn btn-save btn-sm" onclick="saveSection('openrouter')">Guardar</button>
+      <span class="save-confirm" id="save-confirm-openrouter">✓ Guardado</span>
+    </div>
+  </div>
+
+  <!-- Notion -->
+  <div class="card">
+    <div class="config-section-title">Notion</div>
+    <p class="card-subtitle">Guardar carruseles adaptados en tu base de datos</p>
+
+    <div class="fields-row">
+      <div class="field">
+        <label>Token de Integración</label>
+        <input type="password" id="notionToken" placeholder="secret_...">
+        <div class="hint">notion.so → Settings → Connections → Develop or manage integrations → tu integración → Copy secret</div>
+      </div>
+      <div class="field">
+        <label>Database ID</label>
+        <input type="text" id="notionDbId" placeholder="32f4f8fa986c80ab8c1df90f8977bbe0">
+        <div class="hint">En la URL de tu base de datos, la parte entre el último / y el ?</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+    <div class="section-label">Nombres de propiedades en Notion</div>
+    <p class="hint" style="margin-bottom:12px">Deben coincidir exactamente con los nombres de las columnas en tu base de datos (son sensibles a mayúsculas).</p>
+
+    <div class="fields-row">
+      <div class="field">
+        <label>Propiedad Título</label>
+        <input type="text" id="notionPropTitle" placeholder="Nombre">
+      </div>
+      <div class="field">
+        <label>Propiedad Responsable <span class="opt">(People)</span></label>
+        <input type="text" id="notionPropResponsable" placeholder="Responsable">
+      </div>
+      <div class="field">
+        <label>Propiedad Fase <span class="opt">(Select, opcional)</span></label>
+        <input type="text" id="notionPropFase" placeholder="Fase del Proceso">
+      </div>
+      <div class="field">
+        <label>Valor de Fase <span class="opt">(opcional)</span></label>
+        <input type="text" id="notionValorFase" placeholder="Contenido Viral">
+      </div>
+    </div>
+
+    <div class="save-row">
+      <button class="btn btn-save btn-sm" onclick="saveSection('notion')">Guardar</button>
+      <span class="save-confirm" id="save-confirm-notion">✓ Guardado</span>
+    </div>
   </div>
 
 </div>
@@ -461,47 +577,61 @@
 
 <script>
 // ─────────────────────────────────────────────────────────────────────────────
-// CONFIG
+// NAV
 // ─────────────────────────────────────────────────────────────────────────────
 
-const KEYS = ['apifyToken', 'openrouterKey', 'notionToken', 'notionDbId']
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'))
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'))
+    tab.classList.add('active')
+    document.getElementById('view-' + tab.dataset.view).classList.add('active')
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONFIG — localStorage
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ALL_KEYS = [
+  'apifyToken', 'openrouterKey',
+  'notionToken', 'notionDbId',
+  'notionPropTitle', 'notionPropResponsable', 'notionPropFase', 'notionValorFase',
+]
+
+const SECTION_KEYS = {
+  apify: ['apifyToken'],
+  openrouter: ['openrouterKey'],
+  notion: ['notionToken', 'notionDbId', 'notionPropTitle', 'notionPropResponsable', 'notionPropFase', 'notionValorFase'],
+}
 
 function loadConfig() {
-  KEYS.forEach(k => {
+  ALL_KEYS.forEach(k => {
     const el = document.getElementById(k)
     const val = localStorage.getItem('sl_' + k)
     if (el && val) el.value = val
   })
 }
 
-function saveConfig() {
-  KEYS.forEach(k => {
+function getConfig(key) {
+  const el = document.getElementById(key)
+  return (el?.value?.trim()) || localStorage.getItem('sl_' + key) || ''
+}
+
+function saveSection(section) {
+  SECTION_KEYS[section].forEach(k => {
     const el = document.getElementById(k)
     if (el) localStorage.setItem('sl_' + k, el.value.trim())
   })
-  document.getElementById('configStatus').textContent = '✓ Guardado'
-  setTimeout(() => document.getElementById('configStatus').textContent = '', 2000)
+  const confirm = document.getElementById('save-confirm-' + section)
+  if (confirm) {
+    confirm.classList.add('show')
+    setTimeout(() => confirm.classList.remove('show'), 2500)
+  }
 }
-
-function getConfig(key) {
-  return (document.getElementById(key)?.value?.trim()) || localStorage.getItem('sl_' + key) || ''
-}
-
-// Config panel toggle
-document.getElementById('configHeader').addEventListener('click', () => {
-  const body = document.getElementById('configBody')
-  const header = document.getElementById('configHeader')
-  body.classList.toggle('open')
-  header.classList.toggle('open')
-})
-
-document.getElementById('saveConfig').addEventListener('click', saveConfig)
-document.getElementById('toggleConfig').addEventListener('click', () => {
-  document.getElementById('configHeader').click()
-})
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TABS
+// SEARCH TABS
 // ─────────────────────────────────────────────────────────────────────────────
 
 document.querySelectorAll('.tab').forEach(tab => {
@@ -524,7 +654,7 @@ function toast(msg, type = '') {
   el.textContent = msg
   el.className = 'show ' + type
   clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => el.className = '', 4000)
+  toastTimer = setTimeout(() => { el.className = '' }, 4000)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -534,10 +664,10 @@ function toast(msg, type = '') {
 function setProgress(text) {
   const el = document.getElementById('progress')
   if (text) {
-    el.style.display = ''
+    el.classList.add('show')
     document.getElementById('progressText').textContent = text
   } else {
-    el.style.display = 'none'
+    el.classList.remove('show')
   }
 }
 
@@ -547,7 +677,7 @@ function setProgress(text) {
 
 async function callApify(input) {
   const token = getConfig('apifyToken')
-  if (!token) throw new Error('Falta el Apify Token. Configúralo en ⚙ Config.')
+  if (!token) throw new Error('Falta el Apify Token. Configúralo en Configuración.')
 
   const url = `https://api.apify.com/v2/acts/apify~instagram-scraper/run-sync-get-dataset-items?token=${encodeURIComponent(token)}`
   const res = await fetch(url, {
@@ -579,12 +709,12 @@ async function searchByKeywords(keywords, objetivo) {
   const allRaw = []
   for (let i = 0; i < keywords.length; i++) {
     const kw = keywords[i]
-    setProgress(`Buscando keyword ${i + 1}/${keywords.length}: "${kw}"… (${allRaw.filter(x => x.type === 'Sidecar').length} carruseles hasta ahora)`)
+    const sidecarsAhora = allRaw.filter(x => x.type === 'Sidecar').length
+    setProgress(`Keyword ${i + 1}/${keywords.length}: "${kw}" — ${sidecarsAhora} carruseles encontrados`)
 
     const resultsLimit = Math.max(objetivo * 4, 15)
-    let raw = []
     try {
-      raw = await callApify({
+      const raw = await callApify({
         search: kw,
         searchType: 'hashtag',
         searchLimit: 1,
@@ -593,20 +723,17 @@ async function searchByKeywords(keywords, objetivo) {
         onlyPostsNewerThan: '30 days',
         addParentData: false,
       })
+      console.log(`[Apify] "${kw}": ${raw.length} posts → ${raw.filter(x => x.type === 'Sidecar').length} Sidecars`)
+      allRaw.push(...raw)
     } catch (err) {
-      console.error(`[Apify] Error en keyword "${kw}":`, err)
+      console.error(`[Apify] Error en "${kw}":`, err)
       toast(`Error en "${kw}": ${err.message}`, 'error')
-      continue
     }
 
-    console.log(`[Apify] "${kw}": ${raw.length} posts, ${raw.filter(x => x.type === 'Sidecar').length} Sidecars`)
-    allRaw.push(...raw)
-
-    // Early stop cuando hay suficientes Sidecars — no gastar más créditos
+    // Early stop
     if (allRaw.filter(x => x.type === 'Sidecar').length >= objetivo) break
   }
 
-  // CRÍTICO: filtrar desde el raw, antes de cualquier normalización
   return allRaw.filter(i => i.type === 'Sidecar').slice(0, objetivo)
 }
 
@@ -618,7 +745,7 @@ async function searchByUrls(urls) {
     resultsLimit: urls.length * 2,
     addParentData: false,
   })
-  console.log(`[Apify] URLs: ${raw.length} posts, ${raw.filter(x => x.type === 'Sidecar').length} Sidecars`)
+  console.log(`[Apify] URLs: ${raw.length} posts → ${raw.filter(x => x.type === 'Sidecar').length} Sidecars`)
   return raw.filter(i => i.type === 'Sidecar')
 }
 
@@ -635,39 +762,36 @@ function renderResults(carousels) {
 
   const section = document.getElementById('resultsSection')
   const grid = document.getElementById('resultsGrid')
-  const count = document.getElementById('resultsCount')
+
+  section.style.display = ''
+  document.getElementById('resultsCount').textContent = carousels.length
 
   if (carousels.length === 0) {
-    section.style.display = ''
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
       <div class="icon">🔍</div>
-      <p>No se encontraron carruseles. Prueba con otras keywords o sube el objetivo.</p>
+      <p>No se encontraron carruseles.<br>Prueba con otras keywords o sube el objetivo.</p>
     </div>`
-    count.textContent = '0'
     updateAdaptBtn()
     return
   }
 
-  section.style.display = ''
-  count.textContent = carousels.length
-
   grid.innerHTML = carousels.map((c, idx) => {
-    const id = c.shortCode || idx
+    const id = c.shortCode || String(idx)
     const likes = c.likesCount ? `❤ ${c.likesCount.toLocaleString()}` : ''
     const date = c.timestamp ? new Date(c.timestamp).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' }) : ''
     const meta = [likes, date].filter(Boolean).join(' · ')
-    const caption = (c.caption || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    const cap = esc(c.caption || '')
 
-    return `<div class="carousel-card" data-id="${id}" data-idx="${idx}" onclick="toggleSelect(this)">
+    return `<div class="carousel-card" data-id="${esc(id)}" data-idx="${idx}" onclick="toggleSelect(this)">
+      <div class="check-badge">✓</div>
       ${c.displayUrl
-        ? `<img class="card-thumb" src="${c.displayUrl}" alt="" loading="lazy" onerror="this.outerHTML='<div class=\\"card-thumb-placeholder\\">📷</div>'">`
-        : `<div class="card-thumb-placeholder">📷</div>`
-      }
+        ? `<img class="card-thumb" src="${esc(c.displayUrl)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=\\"card-thumb-ph\\">📷</div>'">`
+        : `<div class="card-thumb-ph">📷</div>`}
       <div class="card-body">
-        <div class="card-account">@${c.ownerUsername || 'desconocido'}</div>
+        <div class="card-account">@${esc(c.ownerUsername || 'desconocido')}</div>
         ${meta ? `<div class="card-meta">${meta}</div>` : ''}
-        <div class="card-caption">${caption || '<em>Sin caption</em>'}</div>
-        <a class="card-link" href="${c.url || '#'}" target="_blank" onclick="event.stopPropagation()">Ver en Instagram ↗</a>
+        <div class="card-caption">${cap || '<em style="color:var(--text-3)">Sin caption</em>'}</div>
+        <a class="card-link" href="${esc(c.url || '#')}" target="_blank" onclick="event.stopPropagation()">Ver en Instagram ↗</a>
       </div>
     </div>`
   }).join('')
@@ -676,21 +800,15 @@ function renderResults(carousels) {
 }
 
 function toggleSelect(card) {
-  const idx = parseInt(card.dataset.idx)
   const id = card.dataset.id
-  if (selectedIds.has(id)) {
-    selectedIds.delete(id)
-    card.classList.remove('selected')
-  } else {
-    selectedIds.add(id)
-    card.classList.add('selected')
-  }
+  if (selectedIds.has(id)) { selectedIds.delete(id); card.classList.remove('selected') }
+  else { selectedIds.add(id); card.classList.add('selected') }
   updateAdaptBtn()
 }
 
 function updateAdaptBtn() {
   const n = selectedIds.size
-  document.getElementById('selectedCount').textContent = n > 0 ? `${n} seleccionado${n > 1 ? 's' : ''}` : ''
+  document.getElementById('selectedCount').textContent = n > 0 ? `${n} seleccionado${n !== 1 ? 's' : ''}` : ''
   document.getElementById('adaptBtn').disabled = n === 0
 }
 
@@ -701,14 +819,13 @@ function updateAdaptBtn() {
 async function runKeywordSearch() {
   const btn = document.getElementById('searchKeywordsBtn')
   const kwText = document.getElementById('keywords').value.trim()
-  const objetivo = parseInt(document.getElementById('objetivo').value) || 5
+  const objetivo = Math.max(1, parseInt(document.getElementById('objetivo').value) || 5)
 
   if (!kwText) { toast('Escribe al menos una keyword.', 'error'); return }
 
   const keywords = kwText.split('\n').map(k => k.trim()).filter(Boolean)
 
   btn.disabled = true
-  setProgress('Iniciando búsqueda…')
   document.getElementById('resultsSection').style.display = 'none'
   document.getElementById('adaptationsSection').style.display = 'none'
 
@@ -717,7 +834,7 @@ async function runKeywordSearch() {
     setProgress('')
     renderResults(carousels)
     if (carousels.length > 0) {
-      toast(`✓ ${carousels.length} carrusel${carousels.length > 1 ? 'es' : ''} encontrado${carousels.length > 1 ? 's' : ''}`, 'success')
+      toast(`✓ ${carousels.length} carrusel${carousels.length !== 1 ? 'es' : ''} encontrado${carousels.length !== 1 ? 's' : ''}`, 'success')
     } else {
       toast('No se encontraron carruseles. Prueba otras keywords.', 'error')
     }
@@ -733,7 +850,6 @@ async function runKeywordSearch() {
 async function runUrlSearch() {
   const btn = document.getElementById('searchUrlsBtn')
   const urlText = document.getElementById('urls').value.trim()
-
   if (!urlText) { toast('Pega al menos una URL.', 'error'); return }
 
   const urls = urlText.split('\n').map(u => u.trim()).filter(u => u.startsWith('http'))
@@ -747,9 +863,9 @@ async function runUrlSearch() {
     setProgress('')
     renderResults(carousels)
     if (carousels.length > 0) {
-      toast(`✓ ${carousels.length} carrusel${carousels.length > 1 ? 'es' : ''} encontrado${carousels.length > 1 ? 's' : ''}`, 'success')
+      toast(`✓ ${carousels.length} carrusel${carousels.length !== 1 ? 'es' : ''} encontrado${carousels.length !== 1 ? 's' : ''}`, 'success')
     } else {
-      toast('Las URLs no contienen carruseles (tipo Sidecar).', 'error')
+      toast('Las URLs no contienen carruseles (Sidecar).', 'error')
     }
   } catch (err) {
     setProgress('')
@@ -764,86 +880,63 @@ document.getElementById('searchKeywordsBtn').addEventListener('click', runKeywor
 document.getElementById('searchUrlsBtn').addEventListener('click', runUrlSearch)
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ADAPTATION — Claude via OpenRouter
+// ADAPTATION
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STARTLAB_CONTEXT = `## EMPRESA: StartLab — Plataforma de escalado para negocios digitales B2B
 
-StartLab es una empresa de educación y consultoría B2B con 10+ años, 800+ clientes y equipo de 16 personas. Ayuda a dueños de negocios digitales de servicios a pasar de operaciones frágiles a empresas sistematizadas, rentables y predecibles.
+StartLab: empresa de educación y consultoría B2B con 10+ años, 800+ clientes, equipo de 16. Ayuda a coaches, consultores, agencias e infoproductores a pasar de facturación inestable a un sistema predecible.
 
-**ICP:** Coaches, consultores, agencias digitales, infoproductores. Facturan 5k-30k USD/mes con inestabilidad (ME6) o 20k-300k con operación frágil (ME7).
+ICP: Facturan 5k-30k USD/mes con inestabilidad (ME6) o 20k-300k con operación frágil (ME7).
 
-**Dolores específicos:** Facturación inestable (un mes espectacular, al siguiente no saben qué va a pasar). Esclavos del contenido sin retorno predecible. Picos de lanzamientos seguidos de meses vacíos. Clientes de bajo ticket que exigen demasiado. Miedo a contratar sin ingresos predecibles. Son el "pulpo": el negocio no funciona sin su presencia.
+Dolores: "Un mes espectacular, al siguiente no saben qué va a pasar." Esclavos del contenido sin retorno predecible. Picos de lanzamientos seguidos de meses vacíos. Clientes de bajo ticket que exigen demasiado. Son el "pulpo": el negocio no funciona sin su presencia.
 
-**Desean:** 5-15 clientes premium +2k USD | 30+ llamadas calificadas/mes | Tasa cierre 20%+ | 90 días predecibles | Márgenes 30%+
+Desean: 5-15 clientes premium +2k USD | 30+ llamadas calificadas/mes | Tasa cierre 20%+ | 90 días predecibles | Márgenes 30%+
 
-**Terminología OBLIGATORIA:** sistema predecible, captación automatizada, clientes premium, promesa de alto valor, llamadas calificadas, setter, closer, tasa de cierre, ingresos recurrentes, 90 días, escalar sin lanzamientos, facturación predecible, libertad operativa
+Terminología OBLIGATORIA: sistema predecible, captación automatizada, clientes premium, promesa de alto valor, llamadas calificadas, setter, closer, tasa de cierre, ingresos recurrentes, 90 días, escalar sin lanzamientos, facturación predecible, libertad operativa
 
-**PROHIBIDO:** emprender desde cero, primeros 1k, más seguidores, más contenido, crecer en redes, motivación genérica, métricas inventadas, principiantes sin negocio validado
+PROHIBIDO: emprender desde cero, más seguidores, más contenido, crecer en redes, motivación genérica, métricas inventadas, principiantes sin negocio validado
 
-**Estructura retórica OBLIGATORIA:** "Lo que la mayoría hace → Por qué es un problema → Lo que genera → Lo que debes hacer → Lo que obtienes"
+Estructura retórica OBLIGATORIA: "Lo que la mayoría hace → Por qué es un problema → Lo que genera → Lo que debes hacer → Lo que obtienes"
 
-**CTA:** "Si ya facturas entre X y X al mes y quieres escalar a 50k-80k con un sistema predecible, el enlace está abajo. Sin compromiso. Solo estructura."`
+CTA: "Si ya facturas entre X y X al mes y quieres escalar a 50k-80k con un sistema predecible, el enlace está abajo. Sin compromiso. Solo estructura."`
 
 function buildAdaptPrompt(carousel) {
-  return `Eres el estratega de contenido #1 de StartLab. Tu trabajo es adaptar carruseles de Instagram al contexto de StartLab, conservando la mecánica viral del original pero reemplazando el contenido por los dolores y soluciones del ICP de StartLab.
-
-IMPORTANTE: Los carruseles de Instagram son imágenes (no video). Solo tienes el caption del post. Adapta basándote únicamente en el caption.
+  return `Eres el estratega de contenido de StartLab. Adapta este carrusel de Instagram (solo imágenes, no video — solo tienes el caption) al ICP de StartLab.
 
 ${STARTLAB_CONTEXT}
 
 ---
-
-## CARRUSEL ORIGINAL A ADAPTAR
-
-**Cuenta:** @${carousel.ownerUsername || 'desconocido'}
-**Likes:** ${(carousel.likesCount || 0).toLocaleString()}
-
-**Caption original:**
-${carousel.caption || '(sin caption)'}
-
+CARRUSEL ORIGINAL
+Cuenta: @${carousel.ownerUsername || '?'} · Likes: ${(carousel.likesCount || 0).toLocaleString()}
+Caption: ${carousel.caption || '(sin caption)'}
 ---
 
-## INSTRUCCIONES
+Genera 7-10 slides adaptados. Slide 1 = portada (gancho al dolor). Intermedios = estructura retórica StartLab. Último = CTA.
 
-Adapta este carrusel para el ICP de StartLab. Genera 7-10 slides:
-- Slide 1 = portada (gancho directo al dolor del ICP, máx 8 palabras en título)
-- Slides intermedios = contenido (estructura retórica StartLab)
-- Último slide = CTA StartLab
-
-JSON estricto (sin markdown, sin texto extra):
+JSON estricto sin markdown:
 {
-  "hook_adaptado": "Hook al dolor del ICP (máx 12 palabras)",
-  "hook_variantes": [
-    "Variante 1: ángulo de inestabilidad financiera",
-    "Variante 2: ángulo de dependencia de lanzamientos",
-    "Variante 3: ángulo de esclavitud del contenido"
-  ],
-  "guion_adaptado": "Guion completo del carrusel. Saltos de línea para ritmo. Estructura retórica StartLab. CTA al final.",
+  "hook_adaptado": "string (máx 12 palabras)",
+  "hook_variantes": ["variante inestabilidad", "variante lanzamientos", "variante contenido"],
+  "guion_adaptado": "guion completo con saltos de línea para ritmo, CTA al final",
   "carrusel": {
     "slides": [
-      {"numero": 1, "tipo": "portada", "titulo": "Gancho (máx 8 palabras)", "subtitulo": "Completa la promesa (máx 12 palabras)"},
-      {"numero": 2, "tipo": "contenido", "titulo": "Título corto", "cuerpo": "Texto. Bullets con • si aplica."},
-      {"numero": 3, "tipo": "contenido", "titulo": "Título corto", "cuerpo": "Texto del slide."},
-      {"numero": 4, "tipo": "contenido", "titulo": "Título corto", "cuerpo": "Texto del slide."},
-      {"numero": 5, "tipo": "contenido", "titulo": "Título corto", "cuerpo": "Texto del slide."},
-      {"numero": 6, "tipo": "contenido", "titulo": "Título corto", "cuerpo": "Texto del slide."},
-      {"numero": 7, "tipo": "cta", "titulo": "CTA final StartLab", "cuerpo": "Si ya facturas entre X y X al mes y quieres escalar a 50k-80k con un sistema predecible, el enlace está abajo. Sin compromiso. Solo estructura."}
+      {"numero": 1, "tipo": "portada", "titulo": "Gancho máx 8 palabras", "subtitulo": "Completa la promesa"},
+      {"numero": 2, "tipo": "contenido", "titulo": "Título", "cuerpo": "Texto. Bullets con •"},
+      {"numero": 7, "tipo": "cta", "titulo": "CTA StartLab", "cuerpo": "Si ya facturas..."}
     ],
-    "cta_ultimo_slide": "CTA de cierre"
+    "cta_ultimo_slide": "string"
   }
 }`
 }
 
 function extractJson(text) {
   let cleaned = text.trim()
-  const codeBlock = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/)
-  if (codeBlock) cleaned = codeBlock[1].trim()
+  const cb = cleaned.match(/\`\`\`(?:json)?\s*([\s\S]*?)\`\`\`/)
+  if (cb) cleaned = cb[1].trim()
   try { return JSON.parse(cleaned) } catch {}
-  const first = cleaned.indexOf('{'), last = cleaned.lastIndexOf('}')
-  if (first !== -1 && last > first) {
-    try { return JSON.parse(cleaned.slice(first, last + 1)) } catch {}
-  }
+  const f = cleaned.indexOf('{'), l = cleaned.lastIndexOf('}')
+  if (f !== -1 && l > f) { try { return JSON.parse(cleaned.slice(f, l + 1)) } catch {} }
   return null
 }
 
@@ -853,8 +946,7 @@ function toText(val) {
   if (Array.isArray(val)) return val.map(i =>
     typeof i === 'string' ? i :
     (i.etiqueta && i.texto) ? `${i.etiqueta}\n${i.texto}` :
-    (i.texto) ? String(i.texto) :
-    JSON.stringify(i)
+    i.texto ? String(i.texto) : JSON.stringify(i)
   ).join('\n\n')
   if (typeof val === 'object') {
     if (val.texto) return String(val.texto)
@@ -880,17 +972,12 @@ function normalizeSlides(slides) {
 
 async function adaptCarousel(carousel) {
   const key = getConfig('openrouterKey')
-  if (!key) throw new Error('Falta la OpenRouter API Key. Configúrala en ⚙ Config.')
-
-  const caption = carousel.caption || ''
-  if (!caption) throw new Error('Este carrusel no tiene caption — no hay contenido para adaptar.')
+  if (!key) throw new Error('Falta la OpenRouter API Key. Configúrala en Configuración.')
+  if (!carousel.caption) throw new Error('Este carrusel no tiene caption — no hay contenido para adaptar.')
 
   const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${key}`,
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: 'anthropic/claude-sonnet-4-6',
       max_tokens: 8000,
@@ -907,9 +994,7 @@ async function adaptCarousel(carousel) {
   }
 
   const data = await res.json()
-  const rawText = data.choices[0].message.content.trim()
-  const parsed = extractJson(rawText)
-
+  const parsed = extractJson(data.choices[0].message.content.trim())
   if (!parsed) throw new Error('No se pudo parsear la respuesta de Claude. Intenta de nuevo.')
 
   return {
@@ -929,43 +1014,35 @@ async function adaptCarousel(carousel) {
 
 async function runAdaptation() {
   const btn = document.getElementById('adaptBtn')
-  const selected = foundCarousels.filter((c, i) => {
-    const id = c.shortCode || String(i)
-    return selectedIds.has(id)
-  })
-
+  const selected = foundCarousels.filter((c, i) => selectedIds.has(c.shortCode || String(i)))
   if (selected.length === 0) { toast('Selecciona al menos un carrusel.', 'error'); return }
 
   btn.disabled = true
+
   const section = document.getElementById('adaptationsSection')
   const list = document.getElementById('adaptationsList')
   section.style.display = ''
-  list.innerHTML = selected.map((c, i) => `
-    <div class="adaptation-block" id="adapt-${i}">
-      <div class="adaptation-header">
-        <h3>@${c.ownerUsername || 'desconocido'} — Adaptando…</h3>
-        <span class="spinner"></span>
+  list.innerHTML = selected.map((c, i) =>
+    `<div class="adapt-block" id="adapt-${i}">
+      <div class="adapt-header">
+        <h3>@${esc(c.ownerUsername || '?')} — Adaptando…</h3>
+        <div class="spinner"></div>
       </div>
-    </div>`).join('')
+    </div>`
+  ).join('')
   section.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
   for (let i = 0; i < selected.length; i++) {
     const carousel = selected[i]
     const block = document.getElementById(`adapt-${i}`)
-    setProgress(`Adaptando ${i + 1}/${selected.length}: @${carousel.ownerUsername || 'desconocido'}…`)
-
+    setProgress(`Adaptando ${i + 1}/${selected.length}: @${carousel.ownerUsername || '?'}…`)
     try {
       const adaptation = await adaptCarousel(carousel)
       renderAdaptation(block, carousel, adaptation)
     } catch (err) {
-      block.innerHTML = `
-        <div class="adaptation-header">
-          <h3>@${carousel.ownerUsername || 'desconocido'} — Error</h3>
-        </div>
-        <div class="adaptation-body">
-          <p style="color:var(--danger)">${err.message}</p>
-        </div>`
-      toast(`Error adaptando @${carousel.ownerUsername}: ${err.message}`, 'error')
+      block.innerHTML = `<div class="adapt-header"><h3>@${esc(carousel.ownerUsername || '?')} — Error</h3></div>
+        <div class="adapt-body"><p style="color:var(--danger);font-size:.88rem">${esc(err.message)}</p></div>`
+      toast(`Error: ${err.message}`, 'error')
     }
   }
 
@@ -986,61 +1063,57 @@ function renderAdaptation(block, carousel, adaptation) {
     </div>`).join('')
 
   const variantesHtml = adaptation.hook_variantes.map(v =>
-    `<div class="hook-variant">${esc(v)}</div>`
-  ).join('')
+    `<div class="hook-variant">${esc(v)}</div>`).join('')
+
+  // Serializar para pasar al handler (evitar problemas de encoding con JSON en atributos)
+  const idx = Array.from(document.querySelectorAll('.adapt-block')).indexOf(block)
+  window.__adaptData = window.__adaptData || {}
+  window.__adaptData[idx] = { carousel, adaptation }
 
   block.innerHTML = `
-    <div class="adaptation-header">
-      <h3>@${esc(carousel.ownerUsername || 'desconocido')}</h3>
-      <div style="display:flex;gap:8px">
-        <a href="${carousel.url || '#'}" target="_blank" class="btn btn-secondary btn-sm">Ver original ↗</a>
-        <button class="btn btn-primary btn-sm" onclick="saveToNotion(this, ${JSON.stringify(carousel).replace(/"/g, '&quot;')}, ${JSON.stringify(adaptation).replace(/"/g, '&quot;')})">
-          Guardar en Notion
-        </button>
+    <div class="adapt-header">
+      <h3>@${esc(carousel.ownerUsername || '?')}</h3>
+      <div class="adapt-actions">
+        <a href="${esc(carousel.url || '#')}" target="_blank" class="btn btn-secondary btn-sm">Ver original ↗</a>
+        <button class="btn btn-primary btn-sm" onclick="saveToNotion(this, ${idx})">Guardar en Notion</button>
       </div>
     </div>
-    <div class="adaptation-body">
-      <div class="section-label">Hook adaptado</div>
+    <div class="adapt-body">
+      <div class="label-sm">Hook adaptado</div>
       <div class="hook-box">${esc(adaptation.hook_adaptado)}</div>
 
-      ${variantesHtml ? `<div class="section-label">Variantes del hook</div>
+      ${variantesHtml ? `<div class="label-sm">Variantes del hook</div>
       <div class="hook-variants">${variantesHtml}</div>` : ''}
 
-      <div class="section-label">Slides (${slides.length})</div>
+      <div class="label-sm">Slides (${slides.length})</div>
       <div class="slides-grid">${slidesHtml}</div>
 
-      ${adaptation.guion_adaptado ? `<div class="section-label">Guión adaptado</div>
+      ${adaptation.guion_adaptado ? `<div class="label-sm">Guión adaptado</div>
       <div class="text-block">${esc(adaptation.guion_adaptado)}</div>` : ''}
     </div>`
-}
-
-function esc(str) {
-  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // NOTION
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function saveToNotion(btn, carousel, adaptation) {
+async function saveToNotion(btn, adaptIdx) {
   const token = getConfig('notionToken')
   const dbId = getConfig('notionDbId')
-
   if (!token || !dbId) {
-    toast('Configura el Notion Token y el Database ID en ⚙ Config.', 'error')
-    return
+    toast('Configura el Notion Token y Database ID en la pestaña Configuración.', 'error'); return
   }
 
+  const { carousel, adaptation } = window.__adaptData[adaptIdx]
   btn.disabled = true
   btn.textContent = 'Guardando…'
 
   try {
     const url = await createNotionPage(carousel, adaptation, token, dbId)
-    btn.textContent = '✓ Guardado en Notion'
-    btn.className = 'btn btn-sm'
+    btn.textContent = '✓ Guardado'
     btn.style.background = 'var(--success)'
-    btn.style.color = '#121212'
-    // Añadir link
+    btn.style.color = '#111'
+
     const link = document.createElement('a')
     link.href = url
     link.target = '_blank'
@@ -1057,7 +1130,18 @@ async function saveToNotion(btn, carousel, adaptation) {
 }
 
 async function createNotionPage(carousel, adaptation, token, databaseId) {
+  const propTitle = getConfig('notionPropTitle') || 'Nombre'
+  const propFase = getConfig('notionPropFase')
+  const valorFase = getConfig('notionValorFase')
+
   const title = `@${carousel.ownerUsername || 'ig'} — Carrusel adaptado`
+  const properties = {
+    [propTitle]: { title: [{ text: { content: title } }] },
+  }
+  if (propFase && valorFase) {
+    properties[propFase] = { select: { name: valorFase } }
+  }
+
   const blocks = buildNotionBlocks(carousel, adaptation).slice(0, 100)
 
   const res = await fetch('https://api.notion.com/v1/pages', {
@@ -1067,13 +1151,7 @@ async function createNotionPage(carousel, adaptation, token, databaseId) {
       'Content-Type': 'application/json',
       'Notion-Version': '2022-06-28',
     },
-    body: JSON.stringify({
-      parent: { database_id: databaseId },
-      properties: {
-        'Nombre': { title: [{ text: { content: title } }] },
-      },
-      children: blocks,
-    }),
+    body: JSON.stringify({ parent: { database_id: databaseId }, properties, children: blocks }),
   })
 
   if (!res.ok) {
@@ -1082,34 +1160,28 @@ async function createNotionPage(carousel, adaptation, token, databaseId) {
   }
 
   const page = await res.json()
-  // Construir URL manualmente — page.url a veces no abre la página
   return `https://www.notion.so/${page.id.replace(/-/g, '')}`
 }
 
 function buildNotionBlocks(carousel, adaptation) {
   const blocks = []
-
   const h2 = t => ({ object: 'block', type: 'heading_2', heading_2: { rich_text: [{ type: 'text', text: { content: String(t).slice(0, 2000) } }] } })
   const h3 = t => ({ object: 'block', type: 'heading_3', heading_3: { rich_text: [{ type: 'text', text: { content: String(t).slice(0, 2000) } }] } })
   const para = t => {
-    if (!t?.trim()) return null
-    const chunks = []
+    if (!String(t || '').trim()) return null
     const str = String(t)
-    for (let i = 0; i < str.length; i += 1900) {
-      chunks.push({ type: 'text', text: { content: str.slice(i, i + 1900) } })
-    }
+    const chunks = []
+    for (let i = 0; i < str.length; i += 1900) chunks.push({ type: 'text', text: { content: str.slice(i, i + 1900) } })
     return { object: 'block', type: 'paragraph', paragraph: { rich_text: chunks } }
   }
   const div = { object: 'block', type: 'divider', divider: {} }
 
-  // Original
   blocks.push(h2('Carrusel Original'))
   blocks.push(para(`@${carousel.ownerUsername || '?'} · ${(carousel.likesCount || 0).toLocaleString()} likes`))
   blocks.push(para(carousel.url || ''))
   if (carousel.caption) blocks.push(para(carousel.caption))
   blocks.push(div)
 
-  // Hook
   if (adaptation.hook_adaptado) {
     blocks.push(h2('Hook Adaptado'))
     blocks.push(para(adaptation.hook_adaptado))
@@ -1120,7 +1192,6 @@ function buildNotionBlocks(carousel, adaptation) {
     blocks.push(div)
   }
 
-  // Slides
   const slides = adaptation.carrusel?.slides || []
   if (slides.length) {
     blocks.push(h2(`Slides Adaptados (${slides.length})`))
@@ -1133,7 +1204,6 @@ function buildNotionBlocks(carousel, adaptation) {
     blocks.push(div)
   }
 
-  // Guion
   if (adaptation.guion_adaptado) {
     blocks.push(h2('Guión Adaptado'))
     blocks.push(para(adaptation.guion_adaptado))
@@ -1143,11 +1213,18 @@ function buildNotionBlocks(carousel, adaptation) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────────────────────────────────────────
+
+function esc(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────────────────────────────────────
 
 loadConfig()
-document.getElementById('adaptBtn').disabled = true
 </script>
 
 </body>
