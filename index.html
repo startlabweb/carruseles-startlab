@@ -541,7 +541,7 @@
   <!-- OpenRouter -->
   <div class="card">
     <div class="config-section-title">OpenRouter</div>
-    <p class="card-subtitle">Claude Sonnet — adaptación de carruseles · <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--gold)">Obtener API key</a></p>
+    <p class="card-subtitle">Claude Sonnet (adaptación) + GPT-4o mini (análisis visual) — ambos via OpenRouter · <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--gold)">Obtener API key</a></p>
     <div class="field">
       <label>API Key</label>
       <input type="password" id="openrouterKey" placeholder="sk-or-...">
@@ -549,20 +549,6 @@
     <div class="save-row">
       <button class="btn btn-save btn-sm" onclick="saveSection('openrouter')">Guardar</button>
       <span class="save-confirm" id="save-confirm-openrouter">✓ Guardado</span>
-    </div>
-  </div>
-
-  <!-- OpenAI -->
-  <div class="card">
-    <div class="config-section-title">OpenAI <span style="font-size:0.8rem;font-weight:400;color:var(--text-3)">(análisis visual de imágenes)</span></div>
-    <p class="card-subtitle">GPT-4o mini analiza la primera imagen de cada carrusel antes de adaptarlo · <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--gold)">Obtener API key</a></p>
-    <div class="field">
-      <label>API Key <span class="opt">(opcional — si no se configura, solo se analiza el caption)</span></label>
-      <input type="password" id="openaiKey" placeholder="sk-...">
-    </div>
-    <div class="save-row">
-      <button class="btn btn-save btn-sm" onclick="saveSection('openai')">Guardar</button>
-      <span class="save-confirm" id="save-confirm-openai">✓ Guardado</span>
     </div>
   </div>
 
@@ -653,7 +639,7 @@
     <div class="field" style="margin-top:14px">
       <label>Prompt de análisis visual <span class="opt">(para GPT-4o mini)</span></label>
       <textarea id="visionPrompt" style="min-height:80px;font-size:0.82rem" placeholder="Cargando..."></textarea>
-      <div class="hint">Instrucción que recibe GPT-4o mini al analizar la primera imagen del carrusel. Resultado se incluye en el prompt de adaptación.</div>
+      <div class="hint">Instrucción para GPT-4o mini (via OpenRouter) al analizar la primera imagen del carrusel. El resultado se incluye automáticamente en el prompt de Claude.</div>
     </div>
 
     <div class="save-row">
@@ -686,7 +672,7 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const ALL_KEYS = [
-  'apifyToken', 'openrouterKey', 'openaiKey',
+  'apifyToken', 'openrouterKey',
   'supabaseUrl', 'supabaseKey',
   'notionToken', 'notionDbId',
   'notionPropTitle', 'notionPropResponsable', 'notionPropFase', 'notionValorFase',
@@ -696,7 +682,6 @@ const ALL_KEYS = [
 const SECTION_KEYS = {
   apify: ['apifyToken'],
   openrouter: ['openrouterKey'],
-  openai: ['openaiKey'],
   supabase: ['supabaseUrl', 'supabaseKey'],
   notion: ['notionToken', 'notionDbId', 'notionPropTitle', 'notionPropResponsable', 'notionPropFase', 'notionValorFase'],
   prompts: ['promptContext', 'visionPrompt'],
@@ -1214,13 +1199,13 @@ function normalizeSlides(slides) {
   })
 }
 
-async function analyzeCarouselImage(imageUrl, openaiKey) {
+async function analyzeCarouselImage(imageUrl, openrouterKey) {
   const visionPrompt = (localStorage.getItem('sl_visionPrompt') || DEFAULT_VISION_PROMPT).trim()
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
-    headers: { 'Authorization': `Bearer ${openaiKey}`, 'Content-Type': 'application/json' },
+    headers: { 'Authorization': `Bearer ${openrouterKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: 'openai/gpt-4o-mini',
       max_tokens: 400,
       messages: [{
         role: 'user',
@@ -1242,12 +1227,11 @@ async function adaptCarousel(carousel) {
   if (!key) throw new Error('Falta la OpenRouter API Key. Configúrala en Configuración.')
   if (!carousel.caption) throw new Error('Este carrusel no tiene caption — no hay contenido para adaptar.')
 
-  // Análisis visual opcional (GPT-4o mini)
+  // Análisis visual con GPT-4o mini vía OpenRouter (misma key, sin costo extra de configuración)
   let visionAnalysis = null
-  const openaiKey = getConfig('openaiKey')
-  if (carousel.displayUrl && openaiKey) {
+  if (carousel.displayUrl) {
     try {
-      visionAnalysis = await analyzeCarouselImage(carousel.displayUrl, openaiKey)
+      visionAnalysis = await analyzeCarouselImage(carousel.displayUrl, key)
       console.log('[Vision] Análisis completado:', visionAnalysis?.slice(0, 100))
     } catch (e) {
       console.warn('[Vision] Error al analizar imagen:', e.message)
