@@ -694,6 +694,11 @@ const SECTION_KEYS = {
   prompts: ['promptContext', 'visionPrompt'],
 }
 
+const DEFAULT_CONFIG = {
+  supabaseUrl: 'https://zxfambyveewqcrxcrcbf.supabase.co',
+  supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4ZmFtYnl2ZWV3cWNyeGNyY2JmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTU3NjAsImV4cCI6MjA5MDA3MTc2MH0.lNOX-LnhA5eNRc4tuhpVdnnunZnVGvwUDavj-wqcgnY',
+}
+
 function loadConfig() {
   ALL_KEYS.forEach(k => {
     const el = document.getElementById(k)
@@ -705,13 +710,15 @@ function loadConfig() {
       el.value = DEFAULT_PROMPT_CONTEXT
     } else if (k === 'visionPrompt') {
       el.value = DEFAULT_VISION_PROMPT
+    } else if (DEFAULT_CONFIG[k]) {
+      el.value = DEFAULT_CONFIG[k]
     }
   })
 }
 
 function getConfig(key) {
   const el = document.getElementById(key)
-  return (el?.value?.trim()) || localStorage.getItem('sl_' + key) || ''
+  return (el?.value?.trim()) || localStorage.getItem('sl_' + key) || DEFAULT_CONFIG[key] || ''
 }
 
 function saveSection(section) {

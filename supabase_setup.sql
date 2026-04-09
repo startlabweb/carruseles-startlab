@@ -1,5 +1,7 @@
 -- Carruseles StartLab — tabla de persistencia
--- Ejecutar una sola vez en: https://supabase.com/dashboard/project/omznlxrouzfjevemvicq/sql
+-- Proyecto: startlab-cliper (zxfambyveewqcrxcrcbf)
+-- URL: https://zxfambyveewqcrxcrcbf.supabase.co
+-- YA EJECUTADO via CLI el 2026-04-09. Este archivo es referencia.
 
 create table if not exists carruseles_adaptados (
   id            uuid              default gen_random_uuid() primary key,
