@@ -428,6 +428,16 @@
     }
     .save-confirm.show { opacity: 1; }
 
+    /* ── Adaptation collapse ── */
+    .btn-collapse {
+      background: none; border: none; color: var(--text-3);
+      font-size: 1rem; cursor: pointer; padding: 4px 8px;
+      transition: transform 0.2s; line-height: 1;
+      flex-shrink: 0;
+    }
+    .btn-collapse.collapsed { transform: rotate(-90deg); }
+    .adapt-block.collapsed .adapt-body { display: none; }
+
     /* ── Notion users ── */
     .users-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
     .user-item {
@@ -713,7 +723,7 @@ async function loadConfigFromSupabase() {
   }
 }
 
-async function saveConfigToSupabase(keys) {
+async function saveConfigToSupabase(keys, section) {
   const rows = keys.map(k => {
     const el = document.getElementById(k)
     const val = el ? el.value.trim() : localStorage.getItem('sl_' + k) || ''
@@ -721,7 +731,7 @@ async function saveConfigToSupabase(keys) {
   }).filter(r => r.value !== '')
   if (rows.length === 0) return
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/app_config_carruseles`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/app_config_carruseles`, {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_ANON,
@@ -731,8 +741,16 @@ async function saveConfigToSupabase(keys) {
       },
       body: JSON.stringify(rows),
     })
+    if (!res.ok) {
+      const err = await res.text()
+      console.error('[config] Supabase error:', err)
+      toast(`Error al sincronizar con Supabase: ${res.status}`, 'error')
+    } else {
+      console.log('[config] Guardado en Supabase:', rows.map(r => r.id).join(', '))
+    }
   } catch (e) {
     console.warn('[config] No se pudo guardar en Supabase:', e.message)
+    toast('Sin conexión a Supabase. Guardado solo localmente.', 'error')
   }
 }
 
@@ -756,14 +774,14 @@ function getConfig(key) {
   return (el?.value?.trim()) || localStorage.getItem('sl_' + key) || ''
 }
 
-function saveSection(section) {
+async function saveSection(section) {
   const keys = SECTION_KEYS[section] || []
   keys.forEach(k => {
     const el = document.getElementById(k)
     if (el) localStorage.setItem('sl_' + k, el.value.trim())
   })
   const remoteKeys = keys.filter(k => REMOTE_KEYS.includes(k))
-  if (remoteKeys.length > 0) saveConfigToSupabase(remoteKeys)
+  if (remoteKeys.length > 0) await saveConfigToSupabase(remoteKeys, section)
 
   const confirm = document.getElementById('save-confirm-' + section)
   if (confirm) {
@@ -1006,7 +1024,7 @@ function renderResults(carousels) {
     return `<div class="carousel-card" data-id="${esc(id)}" data-idx="${idx}" onclick="toggleSelect(this)">
       <div class="check-badge">✓</div>
       ${c.displayUrl
-        ? `<img class="card-thumb" src="${esc(c.displayUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='https://images.weserv.nl/?url='+encodeURIComponent(this.dataset.orig)+'&w=600&h=750&fit=cover&output=jpg';this.onerror=function(){this.outerHTML='<div class=\\"card-thumb-ph\\">📷</div>'}" data-orig="${esc(c.displayUrl)}">`
+        ? `<img class="card-thumb" src="${esc(c.displayUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="imgError(this)" data-orig="${esc(c.displayUrl)}">`
         : `<div class="card-thumb-ph">📷</div>`}
       <div class="card-body">
         <div class="card-account">@${esc(c.ownerUsername || 'desconocido')}</div>
@@ -1446,6 +1464,7 @@ function renderAdaptation(block, carousel, adaptation) {
 
   block.innerHTML = `
     <div class="adapt-header">
+      <button class="btn-collapse" onclick="toggleAdapt(this)" title="Mostrar/ocultar">▾</button>
       <h3>@${esc(carousel.ownerUsername || '?')}</h3>
       <div class="adapt-actions">
         <a href="${esc(carousel.url || '#')}" target="_blank" class="btn btn-secondary btn-sm">Ver original ↗</a>
@@ -1620,6 +1639,32 @@ function resetPrompts() {
 
 function esc(str) {
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+// Image proxy fallback — evita el problema de escaping en onerror inline
+function imgError(img) {
+  const proxy = 'https://images.weserv.nl/?url=' + encodeURIComponent(img.dataset.orig) + '&w=600&h=750&fit=cover&output=jpg'
+  if (img.src !== proxy) {
+    img.src = proxy
+    img.onerror = function() {
+      const ph = document.createElement('div')
+      ph.className = 'card-thumb-ph'
+      ph.textContent = '📷'
+      img.replaceWith(ph)
+    }
+  } else {
+    const ph = document.createElement('div')
+    ph.className = 'card-thumb-ph'
+    ph.textContent = '📷'
+    img.replaceWith(ph)
+  }
+}
+
+function toggleAdapt(btn) {
+  const block = btn.closest('.adapt-block')
+  const isCollapsed = block.classList.toggle('collapsed')
+  btn.classList.toggle('collapsed', isCollapsed)
+  btn.title = isCollapsed ? 'Expandir' : 'Colapsar'
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
