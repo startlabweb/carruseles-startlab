@@ -694,9 +694,53 @@ const SECTION_KEYS = {
   prompts: ['promptContext', 'visionPrompt'],
 }
 
-const DEFAULT_CONFIG = {
-  supabaseUrl: 'https://zxfambyveewqcrxcrcbf.supabase.co',
-  supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4ZmFtYnl2ZWV3cWNyeGNyY2JmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTU3NjAsImV4cCI6MjA5MDA3MTc2MH0.lNOX-LnhA5eNRc4tuhpVdnnunZnVGvwUDavj-wqcgnY',
+const SUPABASE_URL = 'https://zxfambyveewqcrxcrcbf.supabase.co'
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4ZmFtYnl2ZWV3cWNyeGNyY2JmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTU3NjAsImV4cCI6MjA5MDA3MTc2MH0.lNOX-LnhA5eNRc4tuhpVdnnunZnVGvwUDavj-wqcgnY'
+
+// Keys synced to Supabase (shared across devices). supabaseUrl/Key are hardcoded, not synced.
+const REMOTE_KEYS = ['apifyToken', 'openrouterKey', 'notionToken', 'notionDbId',
+  'notionPropTitle', 'notionPropResponsable', 'notionPropFase', 'notionValorFase',
+  'promptContext', 'visionPrompt', 'notionResponsableUsers']
+
+async function loadConfigFromSupabase() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/app_config?select=id,value`, {
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
+    })
+    if (!res.ok) return
+    const rows = await res.json()
+    rows.forEach(({ id, value }) => {
+      localStorage.setItem('sl_' + id, value)
+      const el = document.getElementById(id)
+      if (el) el.value = value
+    })
+    restoreSelectedUser()
+  } catch (e) {
+    console.warn('[config] No se pudo cargar config desde Supabase:', e.message)
+  }
+}
+
+async function saveConfigToSupabase(keys) {
+  const rows = keys.map(k => {
+    const el = document.getElementById(k)
+    const val = el ? el.value.trim() : localStorage.getItem('sl_' + k) || ''
+    return { id: k, value: val, updated_at: new Date().toISOString() }
+  }).filter(r => r.value !== '')
+  if (rows.length === 0) return
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/app_config`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON,
+        'Authorization': `Bearer ${SUPABASE_ANON}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify(rows),
+    })
+  } catch (e) {
+    console.warn('[config] No se pudo guardar en Supabase:', e.message)
+  }
 }
 
 function loadConfig() {
@@ -710,22 +754,24 @@ function loadConfig() {
       el.value = DEFAULT_PROMPT_CONTEXT
     } else if (k === 'visionPrompt') {
       el.value = DEFAULT_VISION_PROMPT
-    } else if (DEFAULT_CONFIG[k]) {
-      el.value = DEFAULT_CONFIG[k]
     }
   })
 }
 
 function getConfig(key) {
   const el = document.getElementById(key)
-  return (el?.value?.trim()) || localStorage.getItem('sl_' + key) || DEFAULT_CONFIG[key] || ''
+  return (el?.value?.trim()) || localStorage.getItem('sl_' + key) || ''
 }
 
 function saveSection(section) {
-  SECTION_KEYS[section].forEach(k => {
+  const keys = SECTION_KEYS[section] || []
+  keys.forEach(k => {
     const el = document.getElementById(k)
     if (el) localStorage.setItem('sl_' + k, el.value.trim())
   })
+  const remoteKeys = keys.filter(k => REMOTE_KEYS.includes(k))
+  if (remoteKeys.length > 0) saveConfigToSupabase(remoteKeys)
+
   const confirm = document.getElementById('save-confirm-' + section)
   if (confirm) {
     confirm.classList.add('show')
@@ -740,7 +786,9 @@ function saveSection(section) {
 function saveSelectedUsers() {
   const checked = document.querySelector('input[name=notionUser]:checked')
   const users = checked ? [{ id: checked.value, name: checked.dataset.name }] : []
-  localStorage.setItem('sl_notionResponsableUsers', JSON.stringify(users))
+  const val = JSON.stringify(users)
+  localStorage.setItem('sl_notionResponsableUsers', val)
+  saveConfigToSupabase(['notionResponsableUsers'])
 
   // Collapse list and show selected user
   document.getElementById('notionUsersContainer').style.display = 'none'
@@ -1572,9 +1620,7 @@ function esc(str) {
 // INIT
 // ─────────────────────────────────────────────────────────────────────────────
 
-loadConfig()
-// Si ya hay un usuario seleccionado, mostrar el indicador al cargar
-;(function restoreSelectedUser() {
+function restoreSelectedUser() {
   try {
     const saved = JSON.parse(localStorage.getItem('sl_notionResponsableUsers') || '[]')
     if (saved.length > 0) {
@@ -1586,7 +1632,12 @@ loadConfig()
       selectedDiv.style.display = ''
     }
   } catch {}
-})()
+}
+
+loadConfig()
+restoreSelectedUser()
+// Cargar config desde Supabase (sobreescribe localStorage con valores del equipo)
+loadConfigFromSupabase()
 </script>
 
 </body>
