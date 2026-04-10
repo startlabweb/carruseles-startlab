@@ -1005,15 +1005,22 @@ async function searchByKeywords(keywords, objetivo) {
         searchLimit: 1,
         resultsType: 'posts',
         resultsLimit,
-        onlyPostsNewerThan: '30 days',
         addParentData: false,
       })
-      const sidecarsEnEste = raw.filter(x => x.type === 'Sidecar').length
-      console.log(`[Apify] #${hashtag}: ${raw.length} posts → ${sidecarsEnEste} Sidecars (tipos: ${[...new Set(raw.map(x => x.type))].join(', ')})`)
-      if (raw.length > 0 && sidecarsEnEste === 0) {
-        toast(`#${hashtag}: ${raw.length} posts encontrados pero ninguno es carrusel. Prueba otra keyword.`, 'error')
+
+      // Filtrar solo items que son posts reales (tienen shortCode)
+      // Apify a veces devuelve metadata del hashtag (postsCount, related, etc.) mezclada con los posts
+      const posts = raw.filter(x => x.shortCode)
+      const sidecarsEnEste = posts.filter(x => x.type === 'Sidecar').length
+      const tipos = [...new Set(posts.map(x => x.type || 'sin-tipo'))].join(', ') || 'ninguno'
+      console.log(`[Apify] #${hashtag}: ${raw.length} items → ${posts.length} posts reales → ${sidecarsEnEste} Sidecars (tipos: ${tipos})`)
+      if (raw.length > 0 && posts.length === 0) {
+        console.warn(`[Apify] #${hashtag}: Apify devolvió ${raw.length} items pero ninguno es un post (probablemente metadata del hashtag). Keys recibidas:`, Object.keys(raw[0] || {}))
+        toast(`#${hashtag}: Apify devolvió metadata pero no posts. Prueba otra keyword.`, 'error')
+      } else if (posts.length > 0 && sidecarsEnEste === 0) {
+        toast(`#${hashtag}: ${posts.length} posts pero ninguno es carrusel. Prueba otra keyword.`, 'error')
       }
-      allRaw.push(...raw)
+      allRaw.push(...posts)
     } catch (err) {
       console.error(`[Apify] Error en #${hashtag}:`, err)
       toast(`Error en #${hashtag}: ${err.message}`, 'error')
