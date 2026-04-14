@@ -988,6 +988,26 @@ async function callApify(input) {
   return Array.isArray(data) ? data : [data]
 }
 
+function extractPostsFromApifyKeywordItems(rawItems) {
+  const out = []
+  for (const item of (rawItems || [])) {
+    if (!item || typeof item !== 'object') continue
+    if (item.shortCode) {
+      out.push(item)
+      continue
+    }
+    // Cuando Apify devuelve "hashtag details", los posts vienen anidados.
+    const nested = []
+    if (Array.isArray(item.latestPosts)) nested.push(...item.latestPosts)
+    if (Array.isArray(item.topPosts)) nested.push(...item.topPosts)
+    if (Array.isArray(item.posts)) nested.push(...item.posts)
+    for (const p of nested) {
+      if (p && p.shortCode) out.push(p)
+    }
+  }
+  return out
+}
+
 async function searchByKeywords(keywords, objetivo) {
   const allRaw = []
   const seen = new Set()
@@ -1018,9 +1038,9 @@ async function searchByKeywords(keywords, objetivo) {
         addParentData: false,
       })
 
-      // Filtrar solo items que son posts reales (tienen shortCode)
-      // Apify a veces devuelve metadata del hashtag (postsCount, related, etc.) mezclada con los posts
-      const posts = raw.filter(x => x.shortCode && !seen.has(x.shortCode || x.url))
+      // Apify puede devolver posts directos O metadata de hashtag con posts anidados.
+      const extractedPosts = extractPostsFromApifyKeywordItems(raw)
+      const posts = extractedPosts.filter(x => !seen.has(x.shortCode || x.url))
       posts.forEach(x => seen.add(x.shortCode || x.url))
       const sidecarsEnEste = posts.filter(x => x.type === 'Sidecar').length
       const tipos = [...new Set(posts.map(x => x.type || 'sin-tipo'))].join(', ') || 'ninguno'
