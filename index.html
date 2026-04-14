@@ -990,27 +990,38 @@ async function callApify(input) {
 
 async function searchByKeywords(keywords, objetivo) {
   const allRaw = []
+  const seen = new Set()
   for (let i = 0; i < keywords.length; i++) {
     const kw = keywords[i]
     // Instagram hashtags no tienen espacios — unir palabras
-    const hashtag = kw.replace(/\s+/g, '')
-    const sidecarsAhora = allRaw.filter(x => x.type === 'Sidecar').length
-    setProgress(`Keyword ${i + 1}/${keywords.length}: #${hashtag} — ${sidecarsAhora} carruseles encontrados`)
+    const hashtag = kw.replace(/^#/, '').replace(/\s+/g, '')
+    if (!hashtag) continue
 
-    const resultsLimit = Math.max(objetivo * 4, 20)
+    const sidecarsActuales = allRaw.filter(x => x.type === 'Sidecar').length
+    const faltan = Math.max(objetivo - sidecarsActuales, 1)
+    // Profundidad dinámica: evita quedarse en 1 solo hashtag/perfil sugerido.
+    const searchLimit = Math.min(keywords.length === 1 ? 8 : 5, Math.max(2, Math.ceil(faltan / 2)))
+    // resultsLimit es por cada resultado de search, no global.
+    const resultsLimit = Math.max(15, faltan * 4)
+
+    const sidecarsAhora = allRaw.filter(x => x.type === 'Sidecar').length
+    setProgress(`Keyword ${i + 1}/${keywords.length}: #${hashtag} (searchLimit=${searchLimit}, resultsLimit=${resultsLimit}) — ${sidecarsAhora} carruseles encontrados`)
+
     try {
       const raw = await callApify({
         search: hashtag,
         searchType: 'hashtag',
-        searchLimit: 1,
+        searchLimit,
         resultsType: 'posts',
         resultsLimit,
+        onlyPostsNewerThan: '30 days',
         addParentData: false,
       })
 
       // Filtrar solo items que son posts reales (tienen shortCode)
       // Apify a veces devuelve metadata del hashtag (postsCount, related, etc.) mezclada con los posts
-      const posts = raw.filter(x => x.shortCode)
+      const posts = raw.filter(x => x.shortCode && !seen.has(x.shortCode || x.url))
+      posts.forEach(x => seen.add(x.shortCode || x.url))
       const sidecarsEnEste = posts.filter(x => x.type === 'Sidecar').length
       const tipos = [...new Set(posts.map(x => x.type || 'sin-tipo'))].join(', ') || 'ninguno'
       console.log(`[Apify] #${hashtag}: ${raw.length} items → ${posts.length} posts reales → ${sidecarsEnEste} Sidecars (tipos: ${tipos})`)
