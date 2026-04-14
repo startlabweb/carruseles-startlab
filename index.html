@@ -1008,73 +1008,140 @@ function extractPostsFromApifyKeywordItems(rawItems) {
   return out
 }
 
+const ES_STOPWORDS = new Set([
+  'de', 'del', 'la', 'las', 'el', 'los', 'y', 'o', 'u', 'en', 'con', 'por', 'para', 'a',
+  'un', 'una', 'unos', 'unas', 'que', 'como', 'al', 'se', 'su', 'sus', 'mi', 'tu', 'es'
+])
+
+function normalizeForMatch(text) {
+  return String(text || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9#\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function tokenizeKeyword(text) {
+  const tokens = normalizeForMatch(text)
+    .split(' ')
+    .map(t => t.trim())
+    .filter(Boolean)
+    .filter(t => t.length >= 2 && !ES_STOPWORDS.has(t))
+  return [...new Set(tokens)]
+}
+
+function buildKeywordPlan(rawKeyword) {
+  const phrase = String(rawKeyword || '').trim()
+  const terms = tokenizeKeyword(phrase)
+  const candidates = []
+  const pushCandidate = (tag) => {
+    const clean = String(tag || '').replace(/^#/, '').replace(/[^a-z0-9_]/g, '')
+    if (!clean || candidates.includes(clean)) return
+    candidates.push(clean)
+  }
+
+  if (terms.length > 0) {
+    pushCandidate(terms.join(''))
+    if (terms.length >= 2) pushCandidate(`${terms[0]}${terms[1]}`)
+    terms.forEach(pushCandidate)
+  } else {
+    pushCandidate(normalizeForMatch(phrase).replace(/\s+/g, ''))
+  }
+
+  return { phrase, terms, hashtags: candidates.slice(0, 8) }
+}
+
+function scorePostByPlans(post, plans) {
+  const text = normalizeForMatch(`${post.caption || ''} ${post.ownerUsername || ''}`)
+  if (!text) return 0
+  let best = 0
+  for (const plan of plans) {
+    let score = 0
+    const normalizedPhrase = normalizeForMatch(plan.phrase)
+    if (normalizedPhrase && text.includes(normalizedPhrase)) score += 8
+    for (const term of plan.terms) {
+      if (text.includes(term)) score += 2
+    }
+    if (score > best) best = score
+  }
+  return best
+}
+
 async function searchByKeywords(keywords, objetivo) {
+  const plans = keywords
+    .map(buildKeywordPlan)
+    .filter(p => p.hashtags.length > 0)
+
   const allRaw = []
   const seen = new Set()
-  for (let i = 0; i < keywords.length; i++) {
-    const kw = keywords[i]
-    // Instagram hashtags no tienen espacios — unir palabras
-    const hashtag = kw.replace(/^#/, '').replace(/\s+/g, '')
-    if (!hashtag) continue
+  for (let i = 0; i < plans.length; i++) {
+    const plan = plans[i]
+    for (let j = 0; j < plan.hashtags.length; j++) {
+      const hashtag = plan.hashtags[j]
+      const sidecarsActuales = allRaw.filter(x => x.type === 'Sidecar').length
+      const faltan = Math.max(objetivo - sidecarsActuales, 1)
+      const resultsLimit = Math.max(12, faltan * 3)
+      const hashtagUrl = `https://www.instagram.com/explore/tags/${encodeURIComponent(hashtag)}/`
 
-    const sidecarsActuales = allRaw.filter(x => x.type === 'Sidecar').length
-    const faltan = Math.max(objetivo - sidecarsActuales, 1)
-    // resultsLimit aplica por URL/consulta.
-    const resultsLimit = Math.max(15, faltan * 4)
-    const searchLimit = Math.min(keywords.length === 1 ? 8 : 5, Math.max(2, Math.ceil(faltan / 2)))
-    const hashtagUrl = `https://www.instagram.com/explore/tags/${encodeURIComponent(hashtag)}/`
+      setProgress(`Keyword ${i + 1}/${plans.length}: "${plan.phrase}" → #${hashtag} (${j + 1}/${plan.hashtags.length})`)
 
-    const sidecarsAhora = allRaw.filter(x => x.type === 'Sidecar').length
-    setProgress(`Keyword ${i + 1}/${keywords.length}: #${hashtag} (resultsLimit=${resultsLimit}) — ${sidecarsAhora} carruseles encontrados`)
-
-    try {
-      // Estrategia principal: URL directa del hashtag (evita respuestas de "hashtag stats").
-      let raw = await callApify({
-        directUrls: [hashtagUrl],
-        resultsType: 'posts',
-        resultsLimit,
-        onlyPostsNewerThan: '30 days',
-        addParentData: false,
-      })
-
-      // Fallback: si no trae posts, usar search por hashtag.
-      let extractedPosts = extractPostsFromApifyKeywordItems(raw)
-      if (extractedPosts.length === 0) {
-        raw = await callApify({
-          search: hashtag,
-          searchType: 'hashtag',
-          searchLimit,
+      try {
+        let raw = await callApify({
+          directUrls: [hashtagUrl],
           resultsType: 'posts',
           resultsLimit,
           onlyPostsNewerThan: '30 days',
           addParentData: false,
         })
-        extractedPosts = extractPostsFromApifyKeywordItems(raw)
+
+        let extractedPosts = extractPostsFromApifyKeywordItems(raw)
+        if (extractedPosts.length === 0) {
+          raw = await callApify({
+            search: hashtag,
+            searchType: 'hashtag',
+            searchLimit: 2,
+            resultsType: 'posts',
+            resultsLimit,
+            onlyPostsNewerThan: '30 days',
+            addParentData: false,
+          })
+          extractedPosts = extractPostsFromApifyKeywordItems(raw)
+        }
+
+        const posts = extractedPosts.filter(x => !seen.has(x.shortCode || x.url))
+        posts.forEach(x => seen.add(x.shortCode || x.url))
+        const sidecarsEnEste = posts.filter(x => x.type === 'Sidecar').length
+        const tipos = [...new Set(posts.map(x => x.type || 'sin-tipo'))].join(', ') || 'ninguno'
+        console.log(`[Apify] "${plan.phrase}" #${hashtag}: ${raw.length} items → ${posts.length} posts reales → ${sidecarsEnEste} Sidecars (tipos: ${tipos})`)
+        if (raw.length > 0 && posts.length === 0) {
+          console.warn(`[Apify] #${hashtag}: Apify devolvió ${raw.length} items pero ninguno es un post. Keys recibidas:`, Object.keys(raw[0] || {}))
+        }
+        allRaw.push(...posts)
+      } catch (err) {
+        console.error(`[Apify] Error en #${hashtag}:`, err)
+        toast(`Error en #${hashtag}: ${err.message}`, 'error')
       }
 
-      // Apify puede devolver posts directos O metadata de hashtag con posts anidados.
-      const posts = extractedPosts.filter(x => !seen.has(x.shortCode || x.url))
-      posts.forEach(x => seen.add(x.shortCode || x.url))
-      const sidecarsEnEste = posts.filter(x => x.type === 'Sidecar').length
-      const tipos = [...new Set(posts.map(x => x.type || 'sin-tipo'))].join(', ') || 'ninguno'
-      console.log(`[Apify] #${hashtag}: ${raw.length} items → ${posts.length} posts reales → ${sidecarsEnEste} Sidecars (tipos: ${tipos})`)
-      if (raw.length > 0 && posts.length === 0) {
-        console.warn(`[Apify] #${hashtag}: Apify devolvió ${raw.length} items pero ninguno es un post (probablemente metadata del hashtag). Keys recibidas:`, Object.keys(raw[0] || {}))
-        toast(`#${hashtag}: Apify devolvió metadata pero no posts. Prueba otra keyword.`, 'error')
-      } else if (posts.length > 0 && sidecarsEnEste === 0) {
-        toast(`#${hashtag}: ${posts.length} posts pero ninguno es carrusel. Prueba otra keyword.`, 'error')
-      }
-      allRaw.push(...posts)
-    } catch (err) {
-      console.error(`[Apify] Error en #${hashtag}:`, err)
-      toast(`Error en #${hashtag}: ${err.message}`, 'error')
+      const sidecarsTotal = allRaw.filter(x => x.type === 'Sidecar').length
+      // Early stop con buffer para permitir ranking por relevancia.
+      if (sidecarsTotal >= Math.max(objetivo * 2, objetivo + 3)) break
     }
-
-    // Early stop
-    if (allRaw.filter(x => x.type === 'Sidecar').length >= objetivo) break
+    if (allRaw.filter(x => x.type === 'Sidecar').length >= Math.max(objetivo * 2, objetivo + 3)) break
   }
 
-  return allRaw.filter(i => i.type === 'Sidecar').slice(0, objetivo)
+  const sidecars = allRaw.filter(i => i.type === 'Sidecar')
+  const scored = sidecars
+    .map(item => ({ item, score: scorePostByPlans(item, plans) }))
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score
+      return (b.item.likesCount || 0) - (a.item.likesCount || 0)
+    })
+
+  const relevant = scored.filter(x => x.score > 0).map(x => x.item)
+  const fallback = scored.filter(x => x.score === 0).map(x => x.item)
+  return [...relevant, ...fallback].slice(0, objetivo)
 }
 
 async function searchByUrls(urls) {
