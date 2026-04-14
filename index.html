@@ -1019,27 +1019,40 @@ async function searchByKeywords(keywords, objetivo) {
 
     const sidecarsActuales = allRaw.filter(x => x.type === 'Sidecar').length
     const faltan = Math.max(objetivo - sidecarsActuales, 1)
-    // Profundidad dinámica: evita quedarse en 1 solo hashtag/perfil sugerido.
-    const searchLimit = Math.min(keywords.length === 1 ? 8 : 5, Math.max(2, Math.ceil(faltan / 2)))
-    // resultsLimit es por cada resultado de search, no global.
+    // resultsLimit aplica por URL/consulta.
     const resultsLimit = Math.max(15, faltan * 4)
+    const searchLimit = Math.min(keywords.length === 1 ? 8 : 5, Math.max(2, Math.ceil(faltan / 2)))
+    const hashtagUrl = `https://www.instagram.com/explore/tags/${encodeURIComponent(hashtag)}/`
 
     const sidecarsAhora = allRaw.filter(x => x.type === 'Sidecar').length
-    setProgress(`Keyword ${i + 1}/${keywords.length}: #${hashtag} (searchLimit=${searchLimit}, resultsLimit=${resultsLimit}) — ${sidecarsAhora} carruseles encontrados`)
+    setProgress(`Keyword ${i + 1}/${keywords.length}: #${hashtag} (resultsLimit=${resultsLimit}) — ${sidecarsAhora} carruseles encontrados`)
 
     try {
-      const raw = await callApify({
-        search: hashtag,
-        searchType: 'hashtag',
-        searchLimit,
+      // Estrategia principal: URL directa del hashtag (evita respuestas de "hashtag stats").
+      let raw = await callApify({
+        directUrls: [hashtagUrl],
         resultsType: 'posts',
         resultsLimit,
         onlyPostsNewerThan: '30 days',
         addParentData: false,
       })
 
+      // Fallback: si no trae posts, usar search por hashtag.
+      let extractedPosts = extractPostsFromApifyKeywordItems(raw)
+      if (extractedPosts.length === 0) {
+        raw = await callApify({
+          search: hashtag,
+          searchType: 'hashtag',
+          searchLimit,
+          resultsType: 'posts',
+          resultsLimit,
+          onlyPostsNewerThan: '30 days',
+          addParentData: false,
+        })
+        extractedPosts = extractPostsFromApifyKeywordItems(raw)
+      }
+
       // Apify puede devolver posts directos O metadata de hashtag con posts anidados.
-      const extractedPosts = extractPostsFromApifyKeywordItems(raw)
       const posts = extractedPosts.filter(x => !seen.has(x.shortCode || x.url))
       posts.forEach(x => seen.add(x.shortCode || x.url))
       const sidecarsEnEste = posts.filter(x => x.type === 'Sidecar').length
